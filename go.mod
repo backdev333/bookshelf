@@ -1,3 +1,3 @@
-module frontdev333/bookshelf
+module bookshelf
 
 go 1.25.1
