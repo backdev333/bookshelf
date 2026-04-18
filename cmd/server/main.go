@@ -2,17 +2,26 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"frontdev333/bookshelf/internal/config"
 	"log/slog"
 	"net/http"
+	"os"
 )
 
 func main() {
-	port := ":8080"
+	cfg, err := config.Load()
+	if err != nil {
+		slog.Error("load config", "error", err)
+		os.Exit(1)
+	}
+
+	port := cfg.Port
 
 	http.HandleFunc("/health", healthHandler)
 
 	slog.Info("Server starting", "port", port)
-	http.ListenAndServe(port, nil)
+	http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), nil)
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {
