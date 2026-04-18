@@ -1,27 +1,21 @@
 package config
 
 import (
-	"fmt"
 	"os"
-	"strconv"
 )
 
 type Config struct {
-	Port        int
+	Port        string
 	DatabaseURL string
 	JWTSecret   string
 }
 
-func Load() (*Config, error) {
-	var err error
+func Load() *Config {
 
 	portEnv := os.Getenv("PORT")
-	port := 8080
+	port := "8080"
 	if portEnv != "" {
-		port, err = strconv.Atoi(portEnv)
-		if err != nil {
-			return nil, fmt.Errorf("can't parse by atoi port: %w", err)
-		}
+		port = portEnv
 	}
 
 	dbUrlEnv := os.Getenv("DATABASE_URL")
@@ -40,5 +34,5 @@ func Load() (*Config, error) {
 		Port:        port,
 		DatabaseURL: dbUrl,
 		JWTSecret:   jwtSecret,
-	}, nil
+	}
 }
