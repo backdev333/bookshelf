@@ -1,0 +1,61 @@
+package domain
+
+import (
+	"database/sql"
+	"time"
+)
+
+type Review struct {
+	ID        int            `db:"id"`
+	BookID    int            `db:"book_id"`
+	UserID    int            `db:"user_id"`
+	Rating    int            `db:"rating"`
+	Title     sql.NullString `db:"title"`
+	Content   string         `db:"content"`
+	CreatedAt time.Time      `db:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at"`
+}
+
+type ReviewResponse struct {
+	ID        int         `json:"id"`
+	BookID    int         `json:"book_id"`
+	UserID    UserSummary `json:"user_id"`
+	Rating    int         `json:"rating"`
+	Title     *string     `json:"title"`
+	Content   string      `json:"content"`
+	CreatedAt time.Time   `json:"created_at"`
+	UpdatedAt time.Time   `json:"updated_at"`
+}
+
+type CreateReviewRequest struct {
+	Rating  int     `json:"rating"`
+	Content string  `json:"content"`
+	Title   *string `json:"title"`
+}
+
+type UpdateReviewRequest struct {
+	Rating  *int    `json:"rating"`
+	Content *string `json:"content"`
+	Title   *string `json:"title"`
+}
+
+func (r *Review) ToResponse(user *UserSummary) *ReviewResponse {
+
+	var title *string
+	title = nil
+
+	if r.Title.Valid {
+		title = &r.Title.String
+	}
+
+	return &ReviewResponse{
+		ID:        r.ID,
+		BookID:    r.BookID,
+		UserID:    *user,
+		Rating:    r.Rating,
+		Title:     title,
+		Content:   r.Content,
+		CreatedAt: time.Time{},
+		UpdatedAt: time.Time{},
+	}
+}
