@@ -19,7 +19,7 @@ func Load() *Config {
 	}
 
 	dbUrlEnv := os.Getenv("DATABASE_URL")
-	dbUrl := "postgresql://username:password@localhost:5432/database"
+	dbUrl := "postgres://postgres:postgres@localhost:5432/bookshelf?sslmode=disable"
 	if dbUrlEnv != "" {
 		dbUrl = dbUrlEnv
 	}

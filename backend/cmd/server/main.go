@@ -8,6 +8,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -22,6 +24,13 @@ func main() {
 
 	port := cfg.Port
 
+	db, err := sqlx.Connect("postgres", cfg.DatabaseURL)
+	if err != nil {
+		slog.Error("connect to db", "error", err)
+	}
+	db.Close()
+
+	slog.Info("connected to database")
 	slog.Info("Server starting", "port", port)
 	http.ListenAndServe(":"+cfg.Port, mux)
 }
