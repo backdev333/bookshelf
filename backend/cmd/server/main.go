@@ -5,6 +5,7 @@ import (
 	"frontdev333/bookshelf/internal/config"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -27,8 +28,9 @@ func main() {
 	db, err := sqlx.Connect("postgres", cfg.DatabaseURL)
 	if err != nil {
 		slog.Error("connect to db", "error", err)
+		os.Exit(1)
 	}
-	db.Close()
+	defer db.Close()
 
 	slog.Info("connected to database")
 	slog.Info("Server starting", "port", port)
