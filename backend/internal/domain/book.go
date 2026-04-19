@@ -82,7 +82,7 @@ func (b *Book) ToResponse(creator *UserSummary) *BookResponse {
 	var averageRating *float64
 	averageRating = nil
 
-	if b.PublishedYear.Valid {
+	if b.AverageRating.Valid {
 		averageRating = &b.AverageRating.Float64
 	}
 
