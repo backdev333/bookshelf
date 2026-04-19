@@ -55,7 +55,7 @@ func (r *Review) ToResponse(user *UserSummary) *ReviewResponse {
 		Rating:    r.Rating,
 		Title:     title,
 		Content:   r.Content,
-		CreatedAt: time.Time{},
-		UpdatedAt: time.Time{},
+		CreatedAt: r.CreatedAt,
+		UpdatedAt: r.UpdatedAt,
 	}
 }
