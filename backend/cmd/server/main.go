@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"frontdev333/bookshelf/internal/config"
+	"log"
 	"log/slog"
 	"net/http"
-	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -27,8 +27,7 @@ func main() {
 
 	db, err := sqlx.Connect("postgres", cfg.DatabaseURL)
 	if err != nil {
-		slog.Error("connect to db", "error", err)
-		os.Exit(1)
+		log.Fatalf("connect to db error: %s", err.Error())
 	}
 	defer db.Close()
 
