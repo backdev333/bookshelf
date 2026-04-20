@@ -75,11 +75,11 @@ func (r *reviewRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *reviewRepository) UserHasReviewedBook(ctx context.Context, userID, bookID string) bool {
+func (r *reviewRepository) UserHasReviewedBook(ctx context.Context, userID, bookID string) (bool, error) {
 	var res bool
 	q := `SELECT EXISTS(SELECT 1 FROM reviews WHERE user_id = $1 AND book_id = $2 LIMIT 1)`
 	if err := r.db.QueryRowContext(ctx, q, userID, bookID).Scan(&res); err != nil {
-		return false
+		return false, err
 	}
-	return res
+	return res, nil
 }

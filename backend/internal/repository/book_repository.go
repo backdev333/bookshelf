@@ -23,22 +23,30 @@ func (r *bookRepository) Create(ctx context.Context, book *domain.Book) error {
 }
 
 func (r *bookRepository) GetByID(ctx context.Context, id string) (*domain.Book, error) {
-	return r.getByField(ctx, "id", id)
+	var b domain.Book
+	q := `
+		SELECT books.*, avg(r.rating) AS avg_rate FROM books
+			JOIN reviews as r ON r.book_id = books.id
+		WHERE id = :id
+		GROUP BY r.book_id 
+		LIMIT 1
+`
+	if err := r.db.QueryRowContext(ctx, q, id).Scan(&b); err != nil {
+		return nil, err
+	}
+
+	return &b, nil
 }
 
-func (r *bookRepository) getByField(ctx context.Context, field string, val interface{}) (*domain.Book, error) {
-	return getEntityByField[domain.Book](ctx, r.db, "books", field, val)
-}
-
-func (r *bookRepository) List(ctx context.Context, f domain.BookFilter) ([]domain.Book, error) {
+func (r *bookRepository) List(ctx context.Context, f domain.BookFilter) ([]domain.Book, int, error) {
 	q := `SELECT * FROM books ORDER BY $1 $2 LIMIT $3 OFFSET $4`
 	var res []domain.Book
 	err := r.db.SelectContext(ctx, &res, q, f.Order, f.Sort, f.Limit, f.Page)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return res, nil
+	return res, len(res), nil
 }
 
 func (r *bookRepository) Update(ctx context.Context, book *domain.Book) error {
