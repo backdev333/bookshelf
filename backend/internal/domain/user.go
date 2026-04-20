@@ -3,7 +3,7 @@ package domain
 import "time"
 
 type User struct {
-	ID           int       `json:"id" db:"id"`
+	ID           string    `json:"id" db:"id"`
 	Username     string    `json:"username" db:"username"`
 	Email        string    `json:"email" db:"email"`
 	PasswordHash string    `json:"-" db:"password_hash"`
@@ -12,7 +12,7 @@ type User struct {
 }
 
 type UserPublic struct {
-	ID        int       `json:"id"`
+	ID        string    `json:"id"`
 	Username  string    `json:"username"`
 	Email     string    `json:"email"`
 	CreatedAt time.Time `json:"created_at"`
@@ -20,7 +20,7 @@ type UserPublic struct {
 }
 
 type UserSummary struct {
-	ID       int    `json:"id"`
+	ID       string `json:"id"`
 	Username string `json:"username"`
 }
 
