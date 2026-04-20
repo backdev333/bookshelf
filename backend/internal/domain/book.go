@@ -6,7 +6,7 @@ import (
 )
 
 type Book struct {
-	ID            int             `db:"id"`
+	ID            string          `db:"id"`
 	Title         string          `db:"title"`
 	Author        string          `db:"author"`
 	CreatedBy     int             `db:"created_by"`
@@ -19,7 +19,7 @@ type Book struct {
 }
 
 type BookResponse struct {
-	ID            int         `json:"id"`
+	ID            string      `json:"id"`
 	Title         string      `json:"title"`
 	Author        string      `json:"author"`
 	CreatedBy     UserSummary `json:"created_by"`

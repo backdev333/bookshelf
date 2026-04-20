@@ -6,7 +6,7 @@ import (
 )
 
 type Review struct {
-	ID        int            `db:"id"`
+	ID        string         `db:"id"`
 	BookID    int            `db:"book_id"`
 	UserID    int            `db:"user_id"`
 	Rating    int            `db:"rating"`
@@ -17,7 +17,7 @@ type Review struct {
 }
 
 type ReviewResponse struct {
-	ID        int         `json:"id"`
+	ID        string      `json:"id"`
 	BookID    int         `json:"book_id"`
 	UserID    UserSummary `json:"user_id"`
 	Rating    int         `json:"rating"`
