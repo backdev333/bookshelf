@@ -2,7 +2,11 @@ package repository
 
 import (
 	"context"
+	"database/sql"
+	"errors"
+	"fmt"
 	"frontdev333/bookshelf/internal/domain"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -26,12 +30,15 @@ func (r *bookRepository) GetByID(ctx context.Context, id string) (*domain.Book, 
 	var b domain.Book
 	q := `
 		SELECT books.*, avg(r.rating) AS avg_rate FROM books
-			JOIN reviews as r ON r.book_id = books.id
-		WHERE id = $1
-		GROUP BY r.book_id 
+			LEFT JOIN reviews as r ON r.book_id = books.id
+		WHERE books.id = $1
+		GROUP BY books.id 
 		LIMIT 1
 `
-	if err := r.db.QueryRowContext(ctx, q, id).Scan(&b); err != nil {
+	if err := r.db.GetContext(ctx, &b, q, id); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
 
@@ -39,10 +46,37 @@ func (r *bookRepository) GetByID(ctx context.Context, id string) (*domain.Book, 
 }
 
 func (r *bookRepository) List(ctx context.Context, f domain.BookFilter) ([]domain.Book, int, error) {
-	qList := `SELECT * FROM books ORDER BY $1 $2 LIMIT $3 OFFSET $4`
+	qList := fmt.Sprintf(`SELECT * FROM books ORDER BY %s %s LIMIT $3 OFFSET $4`, f.Order, f.Sort)
 	qCount := `SELECT COUNT(*) FROM books`
 	var res []domain.Book
-	err := r.db.SelectContext(ctx, &res, qList, f.Order, f.Sort, f.Limit, f.Page)
+
+	var page int
+	var limit int
+	var offset int
+	var err error
+
+	if f.Page != nil {
+		page, err = strconv.Atoi(*f.Page)
+		if err != nil {
+			return nil, 0, err
+		}
+	} else {
+		page = 1
+	}
+
+	if f.Limit != nil {
+
+		limit, err = strconv.Atoi(*f.Limit)
+		if err != nil {
+			return nil, 0, err
+		}
+	} else {
+		limit = 10
+	}
+
+	offset = (page - 1) * limit
+
+	err = r.db.SelectContext(ctx, &res, qList, limit, offset)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -63,7 +97,7 @@ func (r *bookRepository) Update(ctx context.Context, book *domain.Book) error {
 }
 
 func (r *bookRepository) Delete(ctx context.Context, id string) error {
-	q := `DELETE FROM books WHERE id = :id`
+	q := `DELETE FROM books WHERE id = $1`
 	if _, err := r.db.ExecContext(ctx, q, id); err != nil {
 		return err
 	}
