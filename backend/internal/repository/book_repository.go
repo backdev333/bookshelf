@@ -81,7 +81,7 @@ func (r *bookRepository) List(ctx context.Context, f domain.BookFilter) ([]domai
 		return nil, 0, err
 	}
 	var count int
-	if err = r.db.SelectContext(ctx, &count, qCount); err != nil {
+	if err = r.db.GetContext(ctx, &count, qCount); err != nil {
 		return nil, 0, err
 	}
 

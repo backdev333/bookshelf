@@ -34,29 +34,21 @@ func (r *reviewRepository) getByField(ctx context.Context, field string, val int
 
 func (r *reviewRepository) ListByBookID(ctx context.Context, bookID string, page, limit int) ([]domain.Review, int, error) {
 	var res []domain.Review
+	var count int
+	var err error
 
-	q := `SELECT * FROM books LIMIT $1 OFFSET $2`
-	rows, err := r.db.QueryContext(ctx, q, limit, page*limit)
-	defer rows.Close()
+	qList := `SELECT * FROM reviews LIMIT $1 OFFSET $2`
+	qCount := `SELECT COUNT(*) FROM reviews`
 
-	if err != nil {
+	if err = r.db.SelectContext(ctx, &res, qList, limit, (page-1)*limit); err != nil {
 		return nil, 0, err
 	}
 
-	for rows.Next() {
-		var review domain.Review
-		if err = rows.Scan(&review); err != nil {
-			return nil, 0, err
-		}
-
-		res = append(res, review)
-	}
-
-	if rows.Err() != nil {
+	if err = r.db.GetContext(ctx, &count, qCount); err != nil {
 		return nil, 0, err
 	}
 
-	return res, len(res), nil
+	return res, count, nil
 }
 
 func (r *reviewRepository) Update(ctx context.Context, review *domain.Review) error {
@@ -68,7 +60,7 @@ func (r *reviewRepository) Update(ctx context.Context, review *domain.Review) er
 }
 
 func (r *reviewRepository) Delete(ctx context.Context, id string) error {
-	q := `DELETE FROM reviews WHERE id = :id`
+	q := `DELETE FROM reviews WHERE id = $1`
 	if _, err := r.db.ExecContext(ctx, q, id); err != nil {
 		return err
 	}
