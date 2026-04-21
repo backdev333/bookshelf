@@ -27,7 +27,7 @@ func (r *bookRepository) GetByID(ctx context.Context, id string) (*domain.Book, 
 	q := `
 		SELECT books.*, avg(r.rating) AS avg_rate FROM books
 			JOIN reviews as r ON r.book_id = books.id
-		WHERE id = :id
+		WHERE id = $1
 		GROUP BY r.book_id 
 		LIMIT 1
 `
@@ -39,14 +39,19 @@ func (r *bookRepository) GetByID(ctx context.Context, id string) (*domain.Book, 
 }
 
 func (r *bookRepository) List(ctx context.Context, f domain.BookFilter) ([]domain.Book, int, error) {
-	q := `SELECT * FROM books ORDER BY $1 $2 LIMIT $3 OFFSET $4`
+	qList := `SELECT * FROM books ORDER BY $1 $2 LIMIT $3 OFFSET $4`
+	qCount := `SELECT COUNT(*) FROM books`
 	var res []domain.Book
-	err := r.db.SelectContext(ctx, &res, q, f.Order, f.Sort, f.Limit, f.Page)
+	err := r.db.SelectContext(ctx, &res, qList, f.Order, f.Sort, f.Limit, f.Page)
 	if err != nil {
 		return nil, 0, err
 	}
+	var count int
+	if err = r.db.SelectContext(ctx, &count, qCount); err != nil {
+		return nil, 0, err
+	}
 
-	return res, len(res), nil
+	return res, count, nil
 }
 
 func (r *bookRepository) Update(ctx context.Context, book *domain.Book) error {
