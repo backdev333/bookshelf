@@ -37,14 +37,14 @@ func (r *reviewRepository) ListByBookID(ctx context.Context, bookID string, page
 	var count int
 	var err error
 
-	qList := `SELECT * FROM reviews LIMIT $1 OFFSET $2`
-	qCount := `SELECT COUNT(*) FROM reviews`
+	qList := `SELECT * FROM reviews WHERE book_id = $1 LIMIT $2 OFFSET $3`
+	qCount := `SELECT COUNT(*) FROM reviews WHERE book_id = $1`
 
-	if err = r.db.SelectContext(ctx, &res, qList, limit, (page-1)*limit); err != nil {
+	if err = r.db.SelectContext(ctx, &res, qList, bookID, limit, (page-1)*limit); err != nil {
 		return nil, 0, err
 	}
 
-	if err = r.db.GetContext(ctx, &count, qCount); err != nil {
+	if err = r.db.GetContext(ctx, &count, qCount, bookID); err != nil {
 		return nil, 0, err
 	}
 
