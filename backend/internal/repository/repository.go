@@ -12,14 +12,14 @@ var ErrNotFound = errors.New("not found")
 var ErrUserAlreadyExists = errors.New("user already exists")
 
 type Repository struct {
-	User   *userRepository
+	User   *UserRepository
 	Book   *bookRepository
 	Review *reviewRepository
 }
 
 func New(db *sqlx.DB) *Repository {
 	return &Repository{
-		User:   &userRepository{db},
+		User:   &UserRepository{db},
 		Book:   &bookRepository{db},
 		Review: &reviewRepository{db},
 	}
