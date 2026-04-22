@@ -15,6 +15,7 @@ var ErrUserExists = errors.New("user already exists")
 var ErrInvalidPassword = errors.New("invalid password")
 var ErrInvalidUsername = errors.New("invalid username")
 var ErrInvalidEmail = errors.New("invalid email")
+var ErrUsernameExists = errors.New("username already exists")
 
 type UserService struct {
 	repo      *repository.UserRepository
@@ -66,7 +67,7 @@ func (s *UserService) validateRegisterReq(ctx context.Context, req domain.Regist
 	}
 
 	if u, err := s.repo.GetByUsername(ctx, req.Username); err == nil && u != nil {
-		return ErrUserExists
+		return ErrUsernameExists
 	}
 	return nil
 }
