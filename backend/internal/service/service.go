@@ -3,7 +3,7 @@ package service
 import "frontdev333/bookshelf/internal/repository"
 
 type Service struct {
-	User   *userService
+	User   *UserService
 	Book   *bookService
 	Review *reviewService
 }

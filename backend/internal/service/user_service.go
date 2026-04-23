@@ -6,7 +6,9 @@ import (
 	"frontdev333/bookshelf/internal/domain"
 	"frontdev333/bookshelf/internal/repository"
 	"net/mail"
+	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -43,10 +45,41 @@ func (s *UserService) Register(ctx context.Context, req domain.RegisterRequest) 
 		return nil, err
 	}
 
+	token, err := s.generateToken(u.ID)
+	if err != nil {
+		return nil, err
+	}
+
 	return &domain.AuthResponse{
 		User:        u.ToPublic(),
-		AccessToken: "",
+		AccessToken: token,
 	}, nil
+}
+
+func (s *UserService) ValidateToken(tokenString string) (string, error) {
+
+	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (any, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("invalid signing method")
+		}
+
+		return []byte(s.jwtSecret), nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	claims, ok := token.Claims.(*jwt.RegisteredClaims)
+	if !ok {
+		return "", errors.New("token claims are not of type")
+	}
+
+	if claims.ExpiresAt.After(time.Now()) {
+		return "", errors.New("token is expired")
+	}
+
+	return claims.Subject, nil
 }
 
 func (s *UserService) validateRegisterReq(ctx context.Context, req domain.RegisterRequest) error {
@@ -70,4 +103,22 @@ func (s *UserService) validateRegisterReq(ctx context.Context, req domain.Regist
 		return ErrUsernameExists
 	}
 	return nil
+}
+
+func (s *UserService) generateToken(userID string) (string, error) {
+
+	claims := jwt.RegisteredClaims{
+		Subject:   userID,
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24)),
+		IssuedAt:  jwt.NewNumericDate(time.Now()),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	signedToken, err := token.SignedString([]byte(s.jwtSecret))
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
 }
