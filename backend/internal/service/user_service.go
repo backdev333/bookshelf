@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"frontdev333/bookshelf/internal/domain"
 	"frontdev333/bookshelf/internal/repository"
 	"net/mail"
@@ -57,26 +58,21 @@ func (s *UserService) Register(ctx context.Context, req domain.RegisterRequest) 
 }
 
 func (s *UserService) ValidateToken(tokenString string) (string, error) {
-
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+	claims := &jwt.RegisteredClaims{}
+	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
 
 		return []byte(s.jwtSecret), nil
-	})
+	}, jwt.WithValidMethods([]string{"HS256"}))
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("validate token: %w", err)
 	}
 
-	claims, ok := token.Claims.(*jwt.RegisteredClaims)
-	if !ok {
-		return "", errors.New("token claims are not of type")
-	}
-
-	if claims.ExpiresAt.Before(time.Now()) {
-		return "", errors.New("token is expired")
+	if claims.Subject == "" {
+		return "", errors.New("token subject is empty")
 	}
 
 	return claims.Subject, nil
