@@ -75,7 +75,7 @@ func (s *UserService) ValidateToken(tokenString string) (string, error) {
 		return "", errors.New("token claims are not of type")
 	}
 
-	if claims.ExpiresAt.After(time.Now()) {
+	if claims.ExpiresAt.Before(time.Now()) {
 		return "", errors.New("token is expired")
 	}
 
