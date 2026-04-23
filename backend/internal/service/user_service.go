@@ -58,7 +58,7 @@ func (s *UserService) Register(ctx context.Context, req domain.RegisterRequest) 
 
 func (s *UserService) ValidateToken(tokenString string) (string, error) {
 
-	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(token *jwt.Token) (any, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid signing method")
 		}
