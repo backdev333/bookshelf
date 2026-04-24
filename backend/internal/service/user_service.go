@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"frontdev333/bookshelf/internal/domain"
 	"frontdev333/bookshelf/internal/repository"
+	"log/slog"
 	"net/mail"
 	"time"
 
@@ -105,24 +106,17 @@ func (s *UserService) ValidateToken(tokenString string) (string, error) {
 }
 
 func (s *UserService) validateRegisterReq(ctx context.Context, req domain.RegisterRequest) error {
-	if _, err := mail.ParseAddress(req.Email); err != nil {
-		return ErrInvalidEmail
+
+	if err := s.validateEmail(ctx, req.Email); err != nil {
+		return err
 	}
 
-	if len([]byte(req.Username)) < 3 {
-		return ErrInvalidUsername
+	if err := s.validateUsername(ctx, req.Username); err != nil {
+		return err
 	}
 
 	if len([]byte(req.Password)) < 8 {
 		return ErrInvalidPassword
-	}
-
-	if s.repo.EmailExists(ctx, req.Email) {
-		return ErrUserExists
-	}
-
-	if u, err := s.repo.GetByUsername(ctx, req.Username); err == nil && u != nil {
-		return ErrUsernameExists
 	}
 	return nil
 }
@@ -143,4 +137,85 @@ func (s *UserService) generateToken(userID string) (string, error) {
 	}
 
 	return signedToken, nil
+}
+
+func (s *UserService) GetByID(ctx context.Context, userID string) (*domain.User, error) {
+	return s.repo.GetByID(ctx, userID)
+}
+
+func (s *UserService) Update(ctx context.Context, userID string, req domain.UpdateUserRequest) (*domain.User, error) {
+	u, err := s.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	email := u.Email
+	nick := u.Username
+	pass := u.PasswordHash
+
+	if req.Username != nil && *req.Username != u.Username {
+
+		if err = s.validateUsername(ctx, *req.Username); err != nil {
+			return nil, err
+		}
+
+		nick = *req.Username
+	}
+
+	if req.Email != nil && *req.Email != u.Email {
+
+		if err = s.validateEmail(ctx, *req.Email); err != nil {
+			return nil, err
+		}
+
+		email = *req.Email
+	}
+
+	if req.Password != nil && bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(*req.Password)) != nil {
+
+		if len([]byte(*req.Password)) < 8 {
+			return nil, ErrInvalidPassword
+		}
+
+		passBytes, err := bcrypt.GenerateFromPassword([]byte(*req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			slog.Error("password hash", "error", err)
+			return nil, ErrInvalidPassword
+		}
+
+		pass = string(passBytes)
+	}
+
+	res := &domain.User{
+		ID:           u.ID,
+		Username:     nick,
+		Email:        email,
+		PasswordHash: pass,
+		CreatedAt:    u.CreatedAt,
+		UpdatedAt:    time.Now(),
+	}
+
+	return u, s.repo.Update(ctx, res)
+}
+
+func (s *UserService) validateEmail(ctx context.Context, email string) error {
+	if _, err := mail.ParseAddress(email); err != nil {
+		return ErrInvalidEmail
+	}
+
+	if s.repo.EmailExists(ctx, email) {
+		return ErrUserExists
+	}
+	return nil
+}
+
+func (s *UserService) validateUsername(ctx context.Context, userName string) error {
+	if len([]byte(userName)) < 3 {
+		return ErrInvalidUsername
+	}
+
+	if s.repo.UsernameExists(ctx, userName) {
+		return ErrUsernameExists
+	}
+	return nil
 }
