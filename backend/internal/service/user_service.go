@@ -25,6 +25,32 @@ type UserService struct {
 	jwtSecret string
 }
 
+func (s *UserService) Login(ctx context.Context, req domain.LoginRequest) (*domain.AuthResponse, error) {
+
+	if _, err := mail.ParseAddress(req.Email); err != nil {
+		return nil, ErrInvalidEmail
+	}
+
+	u, err := s.repo.GetByEmail(ctx, req.Email)
+	if err != nil {
+		return nil, ErrInvalidCredentials
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(req.Password)); err != nil {
+		return nil, ErrInvalidCredentials
+	}
+
+	token, err := s.generateToken(u.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.AuthResponse{
+		User:        u.ToPublic(),
+		AccessToken: token,
+	}, nil
+}
+
 func (s *UserService) Register(ctx context.Context, req domain.RegisterRequest) (*domain.AuthResponse, error) {
 
 	if err := s.validateRegisterReq(ctx, req); err != nil {
