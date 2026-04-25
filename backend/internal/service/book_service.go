@@ -78,7 +78,7 @@ func (s *BookService) GetByID(ctx context.Context, id string) (*domain.BookRespo
 		return nil, err
 	}
 
-	u, err := s.userRepo.GetByUsername(ctx, b.Author)
+	u, err := s.userRepo.GetByID(ctx, b.CreatedBy)
 	if err != nil {
 		return nil, err
 	}
