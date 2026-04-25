@@ -9,7 +9,7 @@ type Book struct {
 	ID            string          `db:"id"`
 	Title         string          `db:"title"`
 	Author        string          `db:"author"`
-	CreatedBy     int             `db:"created_by"`
+	CreatedBy     string          `db:"created_by"`
 	CreatedAt     time.Time       `db:"created_at"`
 	UpdatedAt     time.Time       `db:"updated_at"`
 	Description   sql.NullString  `db:"description"`
@@ -29,6 +29,13 @@ type BookResponse struct {
 	ISBN          *string     `json:"isbn"`
 	PublishedYear *int        `json:"published_year"`
 	AverageRating *float64    `json:"average_rating"`
+}
+
+type BookListResponse struct {
+	Books       []*BookResponse `json:"books"`
+	Count       int             `json:"count"`
+	CurrentPage int             `json:"currentPage"`
+	Limit       int             `json:"limit"`
 }
 
 type CreateBookRequest struct {
@@ -56,7 +63,6 @@ type BookFilter struct {
 }
 
 func (b *Book) ToResponse(creator *UserSummary) *BookResponse {
-
 	var desc *string
 	desc = nil
 
@@ -97,5 +103,27 @@ func (b *Book) ToResponse(creator *UserSummary) *BookResponse {
 		ISBN:          isbn,
 		PublishedYear: publishedYear,
 		AverageRating: averageRating,
+	}
+}
+
+func (f *BookFilter) SeedDefaults() {
+	if f.Sort == nil {
+		sort := "id"
+		f.Sort = &sort
+	}
+
+	if f.Order == nil {
+		order := "desc"
+		f.Order = &order
+	}
+
+	if f.Limit == nil {
+		limit := "10"
+		f.Order = &limit
+	}
+
+	if f.Page == nil {
+		page := "1"
+		f.Page = &page
 	}
 }

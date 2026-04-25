@@ -13,14 +13,14 @@ var ErrUserAlreadyExists = errors.New("user already exists")
 
 type Repository struct {
 	User   *UserRepository
-	Book   *bookRepository
+	Book   *BookRepository
 	Review *reviewRepository
 }
 
 func New(db *sqlx.DB) *Repository {
 	return &Repository{
 		User:   &UserRepository{db},
-		Book:   &bookRepository{db},
+		Book:   &BookRepository{db},
 		Review: &reviewRepository{db},
 	}
 }

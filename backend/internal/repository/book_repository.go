@@ -12,11 +12,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type bookRepository struct {
+type BookRepository struct {
 	db *sqlx.DB
 }
 
-func (r *bookRepository) Create(ctx context.Context, book *domain.Book) error {
+func (r *BookRepository) Create(ctx context.Context, book *domain.Book) error {
 	q := `INSERT INTO books (id, title, author, description, isbn, published_year, created_by, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 	bookID := uuid.NewString()
 	if _, err := r.db.ExecContext(ctx, q, bookID, book.Title, book.Author, book.Description, book.ISBN, book.PublishedYear, book.CreatedBy, book.CreatedAt, book.UpdatedAt); err != nil {
@@ -26,7 +26,7 @@ func (r *bookRepository) Create(ctx context.Context, book *domain.Book) error {
 	return nil
 }
 
-func (r *bookRepository) GetByID(ctx context.Context, id string) (*domain.Book, error) {
+func (r *BookRepository) GetByID(ctx context.Context, id string) (*domain.Book, error) {
 	var b domain.Book
 	q := `
 		SELECT books.*, avg(r.rating) AS avg_rate FROM books
@@ -45,7 +45,7 @@ func (r *bookRepository) GetByID(ctx context.Context, id string) (*domain.Book, 
 	return &b, nil
 }
 
-func (r *bookRepository) List(ctx context.Context, f domain.BookFilter) ([]domain.Book, int, error) {
+func (r *BookRepository) List(ctx context.Context, f domain.BookFilter) ([]domain.Book, int, error) {
 	qList := fmt.Sprintf(`SELECT * FROM books ORDER BY %s %s LIMIT $3 OFFSET $4`, f.Order, f.Sort)
 	qCount := `SELECT COUNT(*) FROM books`
 	var res []domain.Book
@@ -88,7 +88,7 @@ func (r *bookRepository) List(ctx context.Context, f domain.BookFilter) ([]domai
 	return res, count, nil
 }
 
-func (r *bookRepository) Update(ctx context.Context, book *domain.Book) error {
+func (r *BookRepository) Update(ctx context.Context, book *domain.Book) error {
 	q := `UPDATE books SET id = :id, title = :title, author = :author, description = :description, isbn = :isbn, published_year = :published_year, created_by = :created_by, created_at = :created_at, updated_at = :updated_at WHERE id = :id`
 	if _, err := r.db.NamedExecContext(ctx, q, book); err != nil {
 		return err
@@ -96,7 +96,7 @@ func (r *bookRepository) Update(ctx context.Context, book *domain.Book) error {
 	return nil
 }
 
-func (r *bookRepository) Delete(ctx context.Context, id string) error {
+func (r *BookRepository) Delete(ctx context.Context, id string) error {
 	q := `DELETE FROM books WHERE id = $1`
 	if _, err := r.db.ExecContext(ctx, q, id); err != nil {
 		return err

@@ -14,12 +14,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var ErrInvalidCredentials = errors.New("invalid credentials")
-var ErrUserExists = errors.New("user already exists")
-var ErrInvalidPassword = errors.New("invalid password")
-var ErrInvalidUsername = errors.New("invalid username")
-var ErrInvalidEmail = errors.New("invalid email")
-var ErrUsernameExists = errors.New("username already exists")
+var (
+	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrUserExists         = errors.New("user already exists")
+	ErrInvalidPassword    = errors.New("invalid password")
+	ErrInvalidUsername    = errors.New("invalid username")
+	ErrInvalidEmail       = errors.New("invalid email")
+	ErrUsernameExists     = errors.New("username already exists")
+)
 
 type UserService struct {
 	repo      *repository.UserRepository
