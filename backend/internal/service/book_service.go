@@ -97,7 +97,7 @@ func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*doma
 		return nil, err
 	}
 
-	booksResponse := make([]*domain.BookResponse, len(list))
+	booksResponse := make([]domain.BookResponse, len(list))
 
 	for i, v := range list {
 		u, err := s.userRepo.GetByUsername(ctx, v.Author)
@@ -111,7 +111,7 @@ func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*doma
 			Username: u.Username,
 		})
 
-		booksResponse[i] = b
+		booksResponse[i] = *b
 	}
 
 	cPage, err := strconv.Atoi(*filter.Page)
@@ -125,10 +125,13 @@ func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*doma
 	}
 
 	return &domain.BookListResponse{
-		Books:       booksResponse,
-		Count:       count,
-		CurrentPage: cPage,
-		Limit:       cLimit,
+		Data: booksResponse,
+		Pagination: domain.Pagination{
+			Page:       cPage,
+			Limit:      cLimit,
+			Total:      count,
+			TotalPages: count / cLimit,
+		},
 	}, err
 }
 

@@ -32,10 +32,8 @@ type BookResponse struct {
 }
 
 type BookListResponse struct {
-	Books       []*BookResponse `json:"books"`
-	Count       int             `json:"count"`
-	CurrentPage int             `json:"currentPage"`
-	Limit       int             `json:"limit"`
+	Data       []BookResponse `json:"data"`
+	Pagination Pagination     `json:"pagination"`
 }
 
 type CreateBookRequest struct {
