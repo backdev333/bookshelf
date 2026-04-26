@@ -130,7 +130,7 @@ func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*doma
 			Page:       cPage,
 			Limit:      cLimit,
 			Total:      count,
-			TotalPages: count / cLimit,
+			TotalPages: (count + cLimit - 1) / cLimit,
 		},
 	}, err
 }
