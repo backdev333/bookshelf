@@ -92,14 +92,24 @@ func (s *BookService) GetByID(ctx context.Context, id string) (*domain.BookRespo
 func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*domain.BookListResponse, error) {
 	filter.SeedDefaults()
 
+	cPage, err := strconv.Atoi(*filter.Page)
+	if err != nil {
+		return nil, err
+	}
+
+	cLimit, err := strconv.Atoi(*filter.Limit)
+	if err != nil {
+		return nil, err
+	}
+
 	list, count, err := s.bookRepo.List(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 
-	booksResponse := make([]domain.BookResponse, len(list))
+	booksResponse := make([]domain.BookResponse, 0, len(list))
 
-	for i, v := range list {
+	for _, v := range list {
 		u, err := s.userRepo.GetByUsername(ctx, v.Author)
 		if err != nil {
 			slog.Error("BookService List()", "error", err)
@@ -111,17 +121,7 @@ func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*doma
 			Username: u.Username,
 		})
 
-		booksResponse[i] = *b
-	}
-
-	cPage, err := strconv.Atoi(*filter.Page)
-	if err != nil {
-		return nil, err
-	}
-
-	cLimit, err := strconv.Atoi(*filter.Limit)
-	if err != nil {
-		return nil, err
+		booksResponse = append(booksResponse, *b)
 	}
 
 	return &domain.BookListResponse{
@@ -132,7 +132,7 @@ func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*doma
 			Total:      count,
 			TotalPages: (count + cLimit - 1) / cLimit,
 		},
-	}, err
+	}, nil
 }
 
 func (s *BookService) Update(ctx context.Context, userID, bookID string, req domain.UpdateBookRequest) (*domain.BookResponse, error) {

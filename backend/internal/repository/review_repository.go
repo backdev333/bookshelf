@@ -8,11 +8,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type reviewRepository struct {
+type ReviewRepository struct {
 	db *sqlx.DB
 }
 
-func (r *reviewRepository) Create(ctx context.Context, review *domain.Review) error {
+func (r *ReviewRepository) Create(ctx context.Context, review *domain.Review) error {
 	reviewID := uuid.NewString()
 
 	q := `INSERT INTO reviews (id, book_id, user_id, rating, title, content, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
@@ -24,15 +24,15 @@ func (r *reviewRepository) Create(ctx context.Context, review *domain.Review) er
 	return nil
 }
 
-func (r *reviewRepository) GetByID(ctx context.Context, id string) (*domain.Review, error) {
+func (r *ReviewRepository) GetByID(ctx context.Context, id string) (*domain.Review, error) {
 	return r.getByField(ctx, "id", id)
 }
 
-func (r *reviewRepository) getByField(ctx context.Context, field string, val interface{}) (*domain.Review, error) {
+func (r *ReviewRepository) getByField(ctx context.Context, field string, val interface{}) (*domain.Review, error) {
 	return getEntityByField[domain.Review](ctx, r.db, "reviews", field, val)
 }
 
-func (r *reviewRepository) ListByBookID(ctx context.Context, bookID string, page, limit int) ([]domain.Review, int, error) {
+func (r *ReviewRepository) ListByBookID(ctx context.Context, bookID string, page, limit int) ([]domain.Review, int, error) {
 	var res []domain.Review
 	var count int
 	var err error
@@ -51,15 +51,15 @@ func (r *reviewRepository) ListByBookID(ctx context.Context, bookID string, page
 	return res, count, nil
 }
 
-func (r *reviewRepository) Update(ctx context.Context, review *domain.Review) error {
+func (r *ReviewRepository) Update(ctx context.Context, review *domain.Review) (*domain.ReviewResponse, error) {
 	q := `UPDATE reviews SET id = :id, book_id = :book_id, user_id = :user_id, rating = :rating, title = :title, content = :content, created_at = :created_at, updated_at = :updated_at WHERE id = :id`
 	if _, err := r.db.NamedExecContext(ctx, q, review); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return nil, nil
 }
 
-func (r *reviewRepository) Delete(ctx context.Context, id string) error {
+func (r *ReviewRepository) Delete(ctx context.Context, id string) error {
 	q := `DELETE FROM reviews WHERE id = $1`
 	if _, err := r.db.ExecContext(ctx, q, id); err != nil {
 		return err
@@ -67,7 +67,7 @@ func (r *reviewRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *reviewRepository) UserHasReviewedBook(ctx context.Context, userID, bookID string) (bool, error) {
+func (r *ReviewRepository) UserHasReviewedBook(ctx context.Context, userID, bookID string) (bool, error) {
 	var res bool
 	q := `SELECT EXISTS(SELECT 1 FROM reviews WHERE user_id = $1 AND book_id = $2 LIMIT 1)`
 	if err := r.db.QueryRowContext(ctx, q, userID, bookID).Scan(&res); err != nil {

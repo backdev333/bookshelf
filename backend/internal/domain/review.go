@@ -7,8 +7,8 @@ import (
 
 type Review struct {
 	ID        string         `db:"id"`
-	BookID    int            `db:"book_id"`
-	UserID    int            `db:"user_id"`
+	BookID    string         `db:"book_id"`
+	UserID    string         `db:"user_id"`
 	Rating    int            `db:"rating"`
 	Title     sql.NullString `db:"title"`
 	Content   string         `db:"content"`
@@ -18,13 +18,18 @@ type Review struct {
 
 type ReviewResponse struct {
 	ID        string      `json:"id"`
-	BookID    int         `json:"book_id"`
+	BookID    string      `json:"book_id"`
 	UserID    UserSummary `json:"user_id"`
 	Rating    int         `json:"rating"`
 	Title     *string     `json:"title"`
 	Content   string      `json:"content"`
 	CreatedAt time.Time   `json:"created_at"`
 	UpdatedAt time.Time   `json:"updated_at"`
+}
+
+type ReviewListResponse struct {
+	Data       []ReviewResponse `json:"data"`
+	Pagination Pagination       `json:"pagination"`
 }
 
 type CreateReviewRequest struct {
