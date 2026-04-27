@@ -45,7 +45,7 @@ func (s *ReviewService) Create(
 		return ErrAlreadyReviewed
 	}
 
-	if req.Rating > 1 || req.Rating > 5 {
+	if req.Rating < 1 || req.Rating > 5 {
 		return ErrInvalidRating
 	}
 
