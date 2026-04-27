@@ -78,7 +78,9 @@ func (r *UserRepository) GetByIDs(ctx context.Context, ids []string) (map[string
 		return nil, err
 	}
 
-	if err = r.db.SelectContext(ctx, &list, q, args); err != nil {
+	q = r.db.Rebind(q)
+
+	if err = r.db.SelectContext(ctx, &list, q, args...); err != nil {
 		return nil, err
 	}
 
