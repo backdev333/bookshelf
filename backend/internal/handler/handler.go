@@ -68,6 +68,7 @@ func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if _, err = w.Write(bytes); err != nil {
 		slog.Error("writeJSON", "error", err)
@@ -76,7 +77,7 @@ func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 }
 
 func writeError(w http.ResponseWriter, r *http.Request, status int, code, message string) {
-	reqID := getUserID(r.Context())
+	reqID := r.Context().Value(requestID).(string)
 
 	errResp := domain.ErrorResponse{
 		Code:      code,
@@ -88,7 +89,7 @@ func writeError(w http.ResponseWriter, r *http.Request, status int, code, messag
 }
 
 func writeValidationError(w http.ResponseWriter, r *http.Request, details []domain.ErrorDetail) {
-	reqID := getUserID(r.Context())
+	reqID := r.Context().Value(requestID).(string)
 	errResp := domain.ErrorResponse{
 		Code:      "VALIDATION ERROR",
 		Message:   "Invalid Input",
@@ -108,5 +109,5 @@ func decode(r *http.Request, v interface{}) error {
 }
 
 func getUserID(ctx context.Context) string {
-	return ctx.Value(requestID).(string)
+	return ctx.Value(userIDKey).(string)
 }
