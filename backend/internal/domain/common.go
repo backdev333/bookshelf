@@ -8,14 +8,14 @@ type Pagination struct {
 }
 
 type ErrorResponse struct {
-	Code      int    `json:"code"`
-	Message   string `json:"message"`
-	Details   string `json:"details"`
-	RequestID int    `json:"request_id"`
+	Code      string        `json:"code"`
+	Message   string        `json:"message"`
+	Details   []ErrorDetail `json:"details"`
+	RequestID string        `json:"request_id"`
 }
 
 type ErrorDetail struct {
-	Field   int    `json:"field"`
+	Field   string `json:"field"`
 	Message string `json:"message"`
 }
 
