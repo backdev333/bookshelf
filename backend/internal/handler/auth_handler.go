@@ -153,7 +153,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(userIDKey).(string)
+	userID := getUserID(r.Context())
 
 	u, err := h.services.User.GetByID(r.Context(), userID)
 	if err != nil {
@@ -167,8 +167,7 @@ func (h *Handler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateCurrentUser(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(userIDKey).(string)
-
+	userID := getUserID(r.Context())
 	var req domain.UpdateUserRequest
 
 	if err := decode(r, &req); err != nil {
