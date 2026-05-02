@@ -7,6 +7,7 @@ import (
 	"frontdev333/bookshelf/internal/service"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -59,6 +60,32 @@ func (h *Handler) Ready(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, v)
+}
+
+func (h *Handler) AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authTitle := r.Header.Get("Authorization")
+		if len(strings.TrimSpace(authTitle)) == 0 {
+			writeError(w, r, http.StatusUnauthorized, "", "Authorization header required")
+			return
+		}
+
+		authSlice := strings.Split(authTitle, " ")
+		if strings.ToLower(authSlice[0]) != "bearer" {
+			writeError(w, r, http.StatusUnauthorized, "", "Invalid authorization header format")
+			return
+		}
+
+		userID, err := h.services.User.ValidateToken(authSlice[1])
+		if err != nil {
+			writeError(w, r, http.StatusUnauthorized, "", "Invalid or expired token")
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), userIDKey, userID)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }
 
 func writeJSON(w http.ResponseWriter, status int, data interface{}) {
