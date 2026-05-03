@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"frontdev333/bookshelf/internal/domain"
+	"frontdev333/bookshelf/internal/service"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -37,7 +38,7 @@ func (r *BookRepository) GetByID(ctx context.Context, id string) (*domain.Book, 
 `
 	if err := r.db.GetContext(ctx, &b, q, id); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, service.ErrBookNotFound
 		}
 		return nil, err
 	}

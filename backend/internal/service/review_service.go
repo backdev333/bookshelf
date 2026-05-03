@@ -27,26 +27,22 @@ type ReviewService struct {
 	userRepo   *repository.UserRepository
 }
 
-func (s *ReviewService) Create(
-	ctx context.Context,
-	userID, bookID string,
-	req domain.CreateReviewRequest,
-) error {
+func (s *ReviewService) Create(ctx context.Context, userID, bookID string, req domain.CreateReviewRequest) (*domain.ReviewResponse, error) {
 	if _, err := s.bookRepo.GetByID(ctx, bookID); err != nil {
-		return ErrBookNotFound
+		return nil, ErrBookNotFound
 	}
 
 	reviewed, err := s.reviewRepo.UserHasReviewedBook(ctx, userID, bookID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if reviewed {
-		return ErrAlreadyReviewed
+		return nil, ErrAlreadyReviewed
 	}
 
 	if req.Rating < 1 || req.Rating > 5 {
-		return ErrInvalidRating
+		return nil, ErrInvalidRating
 	}
 
 	title := sql.NullString{
@@ -60,7 +56,7 @@ func (s *ReviewService) Create(
 	}
 
 	if utf8.RuneCountInString(req.Content) < 10 {
-		return ErrReviewContentTooShort
+		return nil, ErrReviewContentTooShort
 	}
 
 	r := &domain.Review{
@@ -74,7 +70,15 @@ func (s *ReviewService) Create(
 		UpdatedAt: time.Now(),
 	}
 
-	return s.reviewRepo.Create(ctx, r)
+	u, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ToResponse(&domain.UserSummary{
+		ID:       userID,
+		Username: u.Username,
+	}), s.reviewRepo.Create(ctx, r)
 }
 
 func (s *ReviewService) GetByID(ctx context.Context, id string) (*domain.ReviewResponse, error) {
@@ -115,6 +119,7 @@ func (s *ReviewService) ListByBookID(
 		u, err := s.userRepo.GetByID(ctx, v.UserID)
 		if err != nil {
 			slog.Error("ReviewService ListByBookID()", "error", err)
+			continue
 		}
 
 		data = append(data, *v.ToResponse(&domain.UserSummary{
@@ -199,7 +204,7 @@ func (s *ReviewService) Delete(
 ) error {
 	r, err := s.reviewRepo.GetByID(ctx, reviewID)
 	if err != nil {
-		return err
+		return ErrReviewNotFound
 	}
 
 	if userID != r.UserID {
