@@ -41,6 +41,10 @@ func (h *Handler) GetBook(w http.ResponseWriter, r *http.Request) {
 
 	b, err := h.services.Book.GetByID(r.Context(), bookId)
 	if err != nil {
+		if errors.Is(err, service.ErrBookNotFound) {
+			writeError(w, r, http.StatusNotFound, "", "book not found")
+			return
+		}
 		slog.Error("book_handler.GetBook()", "error", err)
 		writeError(w, r, http.StatusInternalServerError, "", "unknown error")
 		return
