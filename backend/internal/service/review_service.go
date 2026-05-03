@@ -104,7 +104,7 @@ func (s *ReviewService) ListByBookID(
 	page, limit int,
 ) (*domain.ReviewListResponse, error) {
 	if _, err := s.bookRepo.GetByID(ctx, bookID); err != nil {
-		return nil, err
+		return nil, ErrBookNotFound
 	}
 
 	list, count, err := s.reviewRepo.ListByBookID(ctx, bookID, page, limit)
