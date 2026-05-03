@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 type contextKey string
@@ -104,7 +106,7 @@ func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 }
 
 func writeError(w http.ResponseWriter, r *http.Request, status int, code, message string) {
-	reqID := r.Context().Value(requestID).(string)
+	reqID := middleware.GetReqID(r.Context())
 
 	errResp := domain.ErrorResponse{
 		Code:      code,
@@ -116,7 +118,7 @@ func writeError(w http.ResponseWriter, r *http.Request, status int, code, messag
 }
 
 func writeValidationError(w http.ResponseWriter, r *http.Request, details []domain.ErrorDetail) {
-	reqID := r.Context().Value(requestID).(string)
+	reqID := middleware.GetReqID(r.Context())
 	errResp := domain.ErrorResponse{
 		Code:      "VALIDATION ERROR",
 		Message:   "Invalid Input",
