@@ -138,7 +138,7 @@ func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*doma
 func (s *BookService) Update(ctx context.Context, userID, bookID string, req domain.UpdateBookRequest) (*domain.BookResponse, error) {
 	b, err := s.bookRepo.GetByID(ctx, bookID)
 	if err != nil {
-		return nil, err
+		return nil, ErrBookNotFound
 	}
 
 	if b.CreatedBy != userID {
@@ -192,7 +192,7 @@ func (s *BookService) Update(ctx context.Context, userID, bookID string, req dom
 func (s *BookService) Delete(ctx context.Context, userID, bookID string) error {
 	b, err := s.bookRepo.GetByID(ctx, bookID)
 	if err != nil {
-		return err
+		return ErrBookNotFound
 	}
 
 	if b.CreatedBy != userID {
