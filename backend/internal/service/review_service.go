@@ -113,15 +113,22 @@ func (s *ReviewService) ListByBookID(
 	}
 
 	data := make([]domain.ReviewResponse, 0, len(list))
+	uIDs := make([]string, 0, len(list))
 
 	for _, v := range list {
 
-		u, err := s.userRepo.GetByID(ctx, v.UserID)
+		uIDs = append(uIDs, v.UserID)
+	}
+
+	for _, v := range list {
+
+		users, err := s.userRepo.GetByIDs(ctx, uIDs)
 		if err != nil {
 			slog.Error("ReviewService ListByBookID()", "error", err)
 			continue
 		}
 
+		u := users[v.UserID]
 		data = append(data, *v.ToResponse(&domain.UserSummary{
 			ID:       u.ID,
 			Username: u.Username,

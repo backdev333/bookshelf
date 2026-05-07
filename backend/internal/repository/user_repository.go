@@ -89,3 +89,23 @@ func (r *UserRepository) GetByIDs(ctx context.Context, ids []string) (map[string
 	}
 	return res, nil
 }
+
+func (r *UserRepository) GetByUsernames(ctx context.Context, usernames []string) (map[string]*domain.User, error) {
+	res := make(map[string]*domain.User)
+	list := make([]*domain.User, 0)
+
+	q, args, err := sqlx.In(`SELECT * FROM users WHERE username IN (?);`, usernames)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = r.db.SelectContext(ctx, &list, q, args...); err != nil {
+		return nil, err
+	}
+
+	for _, v := range list {
+		res[v.Username] = v
+	}
+
+	return res, err
+}

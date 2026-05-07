@@ -108,11 +108,21 @@ func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*doma
 	}
 
 	booksResponse := make([]domain.BookResponse, 0, len(list))
+	authorsNicknames := make([]string, 0)
 
 	for _, v := range list {
-		u, err := s.userRepo.GetByUsername(ctx, v.Author)
-		if err != nil {
-			slog.Error("BookService List()", "error", err)
+		authorsNicknames = append(authorsNicknames, v.Author)
+	}
+
+	authors, err := s.userRepo.GetByUsernames(ctx, authorsNicknames)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range list {
+		u, ok := authors[v.Author]
+		if !ok || u == nil {
+			slog.Error("BookService List()", "error", "author not found", "username", v.Author)
 			continue
 		}
 
@@ -120,7 +130,6 @@ func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*doma
 			ID:       u.ID,
 			Username: u.Username,
 		})
-
 		booksResponse = append(booksResponse, *b)
 	}
 
