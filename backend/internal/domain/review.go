@@ -44,7 +44,7 @@ type UpdateReviewRequest struct {
 	Title   *string `json:"title"`
 }
 
-func (r *Review) ToResponse(user *UserSummary) *ReviewResponse {
+func (r *Review) ToResponse(user UserSummary) *ReviewResponse {
 
 	var title *string
 	title = nil
@@ -56,7 +56,7 @@ func (r *Review) ToResponse(user *UserSummary) *ReviewResponse {
 	return &ReviewResponse{
 		ID:        r.ID,
 		BookID:    r.BookID,
-		UserID:    *user,
+		UserID:    user,
 		Rating:    r.Rating,
 		Title:     title,
 		Content:   r.Content,

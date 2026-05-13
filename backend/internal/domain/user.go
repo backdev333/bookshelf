@@ -38,6 +38,8 @@ type LoginRequest struct {
 type AuthResponse struct {
 	User        *UserPublic `json:"user"`
 	AccessToken string      `json:"access_token"`
+	TokenType   string      `json:"token_type"`
+	ExpiresIn   int         `json:"expires_in"`
 }
 
 type UpdateUserRequest struct {
@@ -46,12 +48,19 @@ type UpdateUserRequest struct {
 	Password *string `json:"password"`
 }
 
-func (u *User) ToPublic() *UserPublic {
-	return &UserPublic{
+func (u *User) ToPublic() UserPublic {
+	return UserPublic{
 		ID:        u.ID,
 		Username:  u.Username,
 		Email:     u.Email,
 		CreatedAt: u.CreatedAt,
 		UpdatedAt: u.UpdatedAt,
+	}
+}
+
+func (u *User) ToSummary() UserSummary {
+	return UserSummary{
+		ID:       u.ID,
+		Username: u.Username,
 	}
 }

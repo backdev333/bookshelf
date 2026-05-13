@@ -75,10 +75,8 @@ func (s *ReviewService) Create(ctx context.Context, userID, bookID string, req d
 		return nil, err
 	}
 
-	return r.ToResponse(&domain.UserSummary{
-		ID:       userID,
-		Username: u.Username,
-	}), s.reviewRepo.Create(ctx, r)
+	uSum := u.ToSummary()
+	return r.ToResponse(uSum), s.reviewRepo.Create(ctx, r)
 }
 
 func (s *ReviewService) GetByID(ctx context.Context, id string) (*domain.ReviewResponse, error) {
@@ -92,10 +90,7 @@ func (s *ReviewService) GetByID(ctx context.Context, id string) (*domain.ReviewR
 		return nil, err
 	}
 
-	return r.ToResponse(&domain.UserSummary{
-		ID:       u.ID,
-		Username: u.Username,
-	}), nil
+	return r.ToResponse(u.ToSummary()), nil
 }
 
 func (s *ReviewService) ListByBookID(
@@ -129,10 +124,7 @@ func (s *ReviewService) ListByBookID(
 		}
 
 		u := users[v.UserID]
-		data = append(data, *v.ToResponse(&domain.UserSummary{
-			ID:       u.ID,
-			Username: u.Username,
-		}))
+		data = append(data, *v.ToResponse(u.ToSummary()))
 
 	}
 
