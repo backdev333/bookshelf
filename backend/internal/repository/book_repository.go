@@ -46,7 +46,7 @@ func (r *BookRepository) GetByID(ctx context.Context, id string) (*domain.Book, 
 }
 
 func (r *BookRepository) List(ctx context.Context, f domain.BookFilter) ([]domain.Book, int, error) {
-	qList := fmt.Sprintf(`SELECT * FROM books ORDER BY %s %s LIMIT $3 OFFSET $4`, f.Order, f.Sort)
+	qList := fmt.Sprintf(`SELECT * FROM books ORDER BY %s %s LIMIT $1 OFFSET $2`, *f.Order, *f.Sort)
 	qCount := `SELECT COUNT(*) FROM books`
 	var res []domain.Book
 
