@@ -36,10 +36,10 @@ type LoginRequest struct {
 }
 
 type AuthResponse struct {
-	User        *UserPublic `json:"user"`
-	AccessToken string      `json:"access_token"`
-	TokenType   string      `json:"token_type"`
-	ExpiresIn   int         `json:"expires_in"`
+	User        UserPublic `json:"user"`
+	AccessToken string     `json:"access_token"`
+	TokenType   string     `json:"token_type"`
+	ExpiresIn   int        `json:"expires_in"`
 }
 
 type UpdateUserRequest struct {

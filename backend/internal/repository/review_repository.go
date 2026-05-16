@@ -75,3 +75,40 @@ func (r *ReviewRepository) UserHasReviewedBook(ctx context.Context, userID, book
 	}
 	return res, nil
 }
+
+func (r *ReviewRepository) GetReviewsCount(ctx context.Context, bookID string) (int, error) {
+	q := `SELECT COUNT(*) FROM reviews WHERE book_id = $1`
+	var res int
+	if err := r.db.GetContext(ctx, &res, q, bookID); err != nil {
+		return 0, err
+	}
+
+	return res, nil
+}
+
+func (r *ReviewRepository) GetReviewsCounts(ctx context.Context, bookIDs []string) (map[string]int, error) {
+	q := `SELECT book_id, COUNT(*) FROM reviews WHERE book_id IN (?) GROUP BY book_id`
+	q, args, err := sqlx.In(q, bookIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	q = r.db.Rebind(q)
+
+	res := make([]struct {
+		BookID string `json:"book_id"`
+		Count  int    `json:"count"`
+	}, 0, len(bookIDs))
+
+	if err = r.db.SelectContext(ctx, &res, q, args); err != nil {
+		return nil, err
+	}
+
+	toReturn := make(map[string]int, len(res))
+
+	for _, v := range res {
+		toReturn[v.BookID] = v.Count
+	}
+
+	return toReturn, nil
+}

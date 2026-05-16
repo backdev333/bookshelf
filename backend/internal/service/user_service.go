@@ -48,9 +48,8 @@ func (s *UserService) Login(ctx context.Context, req domain.LoginRequest) (*doma
 		return nil, err
 	}
 
-	uPub := u.ToPublic()
 	return &domain.AuthResponse{
-		User:        &uPub,
+		User:        u.ToPublic(),
 		AccessToken: token,
 	}, nil
 }
@@ -81,9 +80,8 @@ func (s *UserService) Register(ctx context.Context, req domain.RegisterRequest) 
 		return nil, err
 	}
 
-	uPub := u.ToPublic()
 	return &domain.AuthResponse{
-		User:        &uPub,
+		User:        u.ToPublic(),
 		AccessToken: token,
 	}, nil
 }

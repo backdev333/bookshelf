@@ -20,11 +20,16 @@ var (
 )
 
 type BookService struct {
-	bookRepo *repository.BookRepository
-	userRepo *repository.UserRepository
+	bookRepo   *repository.BookRepository
+	userRepo   *repository.UserRepository
+	reviewRepo *repository.ReviewRepository
 }
 
-func (s *BookService) Create(ctx context.Context, userId string, req domain.CreateBookRequest) (*domain.BookResponse, error) {
+func (s *BookService) Create(
+	ctx context.Context,
+	userId string,
+	req domain.CreateBookRequest,
+) (*domain.BookResponse, error) {
 	if req.Title == "" {
 		return nil, ErrBookTitleEmpty
 	}
@@ -64,12 +69,20 @@ func (s *BookService) Create(ctx context.Context, userId string, req domain.Crea
 		return nil, err
 	}
 
-	uSum := &domain.UserSummary{
-		ID:       userId,
-		Username: req.Author,
+	reviewsCount, err := s.reviewRepo.GetReviewsCount(ctx, b.ID)
+	if err != nil {
+		return nil, err
 	}
 
-	return b.ToResponse(uSum), nil
+	u, err := s.userRepo.GetByID(ctx, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	return b.ToResponse(domain.UserSummary{
+		ID:       userId,
+		Username: u.Username,
+	}, &reviewsCount), nil
 }
 
 func (s *BookService) GetByID(ctx context.Context, id string) (*domain.BookResponse, error) {
@@ -83,10 +96,12 @@ func (s *BookService) GetByID(ctx context.Context, id string) (*domain.BookRespo
 		return nil, err
 	}
 
-	return b.ToResponse(&domain.UserSummary{
-		ID:       u.ID,
-		Username: u.Username,
-	}), nil
+	reviewsCount, err := s.reviewRepo.GetReviewsCount(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return b.ToResponse(u.ToSummary(), &reviewsCount), nil
 }
 
 func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*domain.BookListResponse, error) {
@@ -109,12 +124,19 @@ func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*doma
 
 	booksResponse := make([]domain.BookResponse, 0, len(list))
 	authorsNicknames := make([]string, 0)
+	booksIDs := make([]string, 0, len(list))
 
 	for _, v := range list {
 		authorsNicknames = append(authorsNicknames, v.Author)
+		booksIDs = append(booksIDs, v.ID)
 	}
 
 	authors, err := s.userRepo.GetByUsernames(ctx, authorsNicknames)
+	if err != nil {
+		return nil, err
+	}
+
+	reviewsCounts, err := s.reviewRepo.GetReviewsCounts(ctx, booksIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -126,10 +148,13 @@ func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*doma
 			continue
 		}
 
-		b := v.ToResponse(&domain.UserSummary{
-			ID:       u.ID,
-			Username: u.Username,
-		})
+		reviewsCount, ok := reviewsCounts[v.ID]
+		if !ok {
+			slog.Warn("reviews count not found", "book_id", v.ID)
+			continue
+		}
+		b := v.ToResponse(u.ToSummary(), &reviewsCount)
+
 		booksResponse = append(booksResponse, *b)
 	}
 
@@ -192,10 +217,12 @@ func (s *BookService) Update(ctx context.Context, userID, bookID string, req dom
 		return nil, err
 	}
 
-	return b.ToResponse(&domain.UserSummary{
-		ID:       u.ID,
-		Username: u.Username,
-	}), nil
+	reviewsCount, err := s.reviewRepo.GetReviewsCount(ctx, b.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	return b.ToResponse(u.ToSummary(), &reviewsCount), nil
 }
 
 func (s *BookService) Delete(ctx context.Context, userID, bookID string) error {

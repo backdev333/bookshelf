@@ -14,6 +14,7 @@ type Book struct {
 	UpdatedAt     time.Time       `db:"updated_at"`
 	Description   sql.NullString  `db:"description"`
 	ISBN          sql.NullString  `db:"isbn"`
+	ReviewsCount  sql.NullInt64   `db:"reviews_count"`
 	PublishedYear sql.NullInt32   `db:"published_year"`
 	AverageRating sql.NullFloat64 `db:"average_rating"`
 }
@@ -22,11 +23,13 @@ type BookResponse struct {
 	ID            string      `json:"id"`
 	Title         string      `json:"title"`
 	Author        string      `json:"author"`
-	CreatedBy     UserSummary `json:"created_by"`
+	Creator       UserSummary `json:"creator"`
+	CreatedBy     string      `json:"created_by"`
 	CreatedAt     time.Time   `json:"created_at"`
 	UpdatedAt     time.Time   `json:"updated_at"`
 	Description   *string     `json:"description"`
 	ISBN          *string     `json:"isbn"`
+	ReviewsCount  *int        `json:"reviews_count"`
 	PublishedYear *int        `json:"published_year"`
 	AverageRating *float64    `json:"average_rating"`
 }
@@ -60,7 +63,7 @@ type BookFilter struct {
 	Limit  *string `json:"limit"`
 }
 
-func (b *Book) ToResponse(creator *UserSummary) *BookResponse {
+func (b *Book) ToResponse(creator UserSummary, reviewsCount *int) *BookResponse {
 	var desc *string
 	desc = nil
 
@@ -94,11 +97,13 @@ func (b *Book) ToResponse(creator *UserSummary) *BookResponse {
 		ID:            b.ID,
 		Title:         b.Title,
 		Author:        b.Author,
-		CreatedBy:     *creator,
+		Creator:       creator,
+		CreatedBy:     creator.Username,
 		CreatedAt:     b.CreatedAt,
 		UpdatedAt:     b.UpdatedAt,
 		Description:   desc,
 		ISBN:          isbn,
+		ReviewsCount:  reviewsCount,
 		PublishedYear: publishedYear,
 		AverageRating: averageRating,
 	}
