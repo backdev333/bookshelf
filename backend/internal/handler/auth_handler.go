@@ -14,7 +14,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	if err := decode(r, &req); err != nil {
 		slog.Error("Register() decode body", "error", err)
-		writeError(w, r, http.StatusInternalServerError, "", "Internal error")
+		writeError(w, r, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON in request body")
 		return
 	}
 
@@ -94,7 +94,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		slog.Error("Register() service error", "error", err)
-		writeError(w, r, http.StatusInternalServerError, "", "Internal error")
+		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "Internal error")
 		return
 	}
 
@@ -105,6 +105,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var loginReq domain.LoginRequest
 	if err := decode(r, &loginReq); err != nil {
 		slog.Error("Login() decode", "error", err)
+		writeError(w, r, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON in request body")
 		return
 	}
 
@@ -145,7 +146,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		slog.Error("Login() service error", "error", err)
-		writeError(w, r, http.StatusInternalServerError, "", "Internal error")
+		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "Internal error")
 		return
 	}
 
@@ -157,7 +158,7 @@ func (h *Handler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 
 	u, err := h.services.User.GetByID(r.Context(), userID)
 	if err != nil {
-		writeError(w, r, http.StatusInternalServerError, "", "Server error. Try later.")
+		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "Server error. Try later.")
 		slog.Error("GetCurrentUser()", "error", err)
 		return
 	}
@@ -172,12 +173,13 @@ func (h *Handler) UpdateCurrentUser(w http.ResponseWriter, r *http.Request) {
 
 	if err := decode(r, &req); err != nil {
 		slog.Error("UpdateCurrentUser() decode", "error", err)
+		writeError(w, r, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON in request body")
 		return
 	}
 
 	u, err := h.services.User.Update(r.Context(), userID, req)
 	if err != nil {
-		writeError(w, r, http.StatusInternalServerError, "", "Server error. Try later.")
+		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "Server error. Try later.")
 		slog.Error("UpdateCurrentUser()", "error", err)
 		return
 	}

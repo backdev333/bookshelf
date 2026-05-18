@@ -29,7 +29,7 @@ func (h *Handler) ListBook(w http.ResponseWriter, r *http.Request) {
 	list, err := h.services.Book.List(r.Context(), f)
 	if err != nil {
 		slog.Error("book_handler.ListBook()", "error", err)
-		writeError(w, r, http.StatusInternalServerError, "", "unknown error")
+		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "unknown error")
 		return
 	}
 
@@ -42,11 +42,11 @@ func (h *Handler) GetBook(w http.ResponseWriter, r *http.Request) {
 	b, err := h.services.Book.GetByID(r.Context(), bookId)
 	if err != nil {
 		if errors.Is(err, service.ErrBookNotFound) {
-			writeError(w, r, http.StatusNotFound, "", "book not found")
+			writeError(w, r, http.StatusNotFound, "BOOK_NOT_FOUND", "book not found")
 			return
 		}
 		slog.Error("book_handler.GetBook()", "error", err)
-		writeError(w, r, http.StatusInternalServerError, "", "unknown error")
+		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "unknown error")
 		return
 	}
 	writeJSON(w, http.StatusOK, b)
@@ -58,7 +58,7 @@ func (h *Handler) CreateBook(w http.ResponseWriter, r *http.Request) {
 
 	if err := decode(r, &req); err != nil {
 		slog.Error("book_handler.CreateBook()", "error", err)
-		writeError(w, r, http.StatusInternalServerError, "", "unknown error")
+		writeError(w, r, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON in request body")
 		return
 	}
 
@@ -87,7 +87,7 @@ func (h *Handler) CreateBook(w http.ResponseWriter, r *http.Request) {
 	b, err := h.services.Book.Create(r.Context(), userID, req)
 	if err != nil {
 		slog.Error("book_handler.CreateBook()", "error", err)
-		writeError(w, r, http.StatusInternalServerError, "", "unknown error")
+		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "unknown error")
 		return
 	}
 
@@ -102,24 +102,24 @@ func (h *Handler) UpdateBook(w http.ResponseWriter, r *http.Request) {
 
 	if err := decode(r, &req); err != nil {
 		slog.Error("book_handler.UpdateBook()", "error", err)
-		writeError(w, r, http.StatusInternalServerError, "", "unknown error")
+		writeError(w, r, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON in request body")
 		return
 	}
 
 	b, err := h.services.Book.Update(r.Context(), userID, bookID, req)
 	if err != nil {
 		if errors.Is(err, service.ErrNotBookOwner) {
-			writeError(w, r, http.StatusForbidden, "", "you are not the book owner")
+			writeError(w, r, http.StatusForbidden, "NOT_BOOK_OWNER", "you are not the book owner")
 			return
 		}
 
 		if errors.Is(err, service.ErrBookNotFound) {
-			writeError(w, r, http.StatusNotFound, "", "book not found")
+			writeError(w, r, http.StatusNotFound, "BOOK_NOT_FOUND", "book not found")
 			return
 		}
 
 		slog.Error("book_handler.UpdateBook()", "error", err)
-		writeError(w, r, http.StatusInternalServerError, "", "unknown error")
+		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "unknown error")
 		return
 	}
 
@@ -132,19 +132,19 @@ func (h *Handler) DeleteBook(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.services.Book.Delete(r.Context(), userID, bookID); err != nil {
 		if errors.Is(err, service.ErrNotBookOwner) {
-			writeError(w, r, http.StatusForbidden, "", "you are not the book owner")
+			writeError(w, r, http.StatusForbidden, "NOT_BOOK_OWNER", "you are not the book owner")
 			return
 		}
 
 		if errors.Is(err, service.ErrBookNotFound) {
-			writeError(w, r, http.StatusNotFound, "", "book not found")
+			writeError(w, r, http.StatusNotFound, "BOOK_NOT_FOUND", "book not found")
 			return
 		}
 
 		slog.Error("book_handler.DeleteBook()", "error", err)
-		writeError(w, r, http.StatusInternalServerError, "", "unknown error")
+		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "unknown error")
 		return
 	}
 
-	writeJSON(w, http.StatusNoContent, "")
+	w.WriteHeader(http.StatusNoContent)
 }

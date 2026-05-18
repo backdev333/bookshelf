@@ -51,6 +51,8 @@ func (s *UserService) Login(ctx context.Context, req domain.LoginRequest) (*doma
 	return &domain.AuthResponse{
 		User:        u.ToPublic(),
 		AccessToken: token,
+		TokenType:   "Bearer",
+		ExpiresIn:   int(time.Now().Add(time.Hour * 24).Unix()),
 	}, nil
 }
 
@@ -83,6 +85,8 @@ func (s *UserService) Register(ctx context.Context, req domain.RegisterRequest) 
 	return &domain.AuthResponse{
 		User:        u.ToPublic(),
 		AccessToken: token,
+		TokenType:   "Bearer",
+		ExpiresIn:   int(time.Now().Add(time.Hour * 24).Unix()),
 	}, nil
 }
 

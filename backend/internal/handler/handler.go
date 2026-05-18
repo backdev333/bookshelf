@@ -68,19 +68,24 @@ func (h *Handler) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authTitle := r.Header.Get("Authorization")
 		if len(strings.TrimSpace(authTitle)) == 0 {
-			writeError(w, r, http.StatusUnauthorized, "", "Authorization header required")
+			writeError(w, r, http.StatusUnauthorized, "AUTH_HEADER_REQUIRED", "Authorization header required")
 			return
 		}
 
 		authSlice := strings.Split(authTitle, " ")
 		if strings.ToLower(authSlice[0]) != "bearer" {
-			writeError(w, r, http.StatusUnauthorized, "", "Invalid authorization header format")
+			writeError(w, r, http.StatusUnauthorized, "INVALID_AUTH_HEADER_FORMAT", "Invalid authorization header format")
+			return
+		}
+
+		if len(authSlice) != 2 {
+			writeError(w, r, http.StatusUnauthorized, "INVALID_AUTH_HEADER_FORMAT", "Invalid authorization header format")
 			return
 		}
 
 		userID, err := h.services.User.ValidateToken(authSlice[1])
 		if err != nil {
-			writeError(w, r, http.StatusUnauthorized, "", "Invalid or expired token")
+			writeError(w, r, http.StatusUnauthorized, "INVALID_OR_EXPIRED_TOKEN", "Invalid or expired token")
 			return
 		}
 
