@@ -12,6 +12,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var ErrBookNotFound = errors.New("book not found")
+
 type BookRepository struct {
 	db *sqlx.DB
 }
@@ -29,7 +31,7 @@ func (r *BookRepository) Create(ctx context.Context, book *domain.Book) error {
 func (r *BookRepository) GetByID(ctx context.Context, id string) (*domain.Book, error) {
 	var b domain.Book
 	q := `
-		SELECT books.*, avg(r.rating) AS avg_rate FROM books
+		SELECT books.*, avg(r.rating) AS average_rating FROM books
 			LEFT JOIN reviews as r ON r.book_id = books.id
 		WHERE books.id = $1
 		GROUP BY books.id 
@@ -37,7 +39,7 @@ func (r *BookRepository) GetByID(ctx context.Context, id string) (*domain.Book, 
 `
 	if err := r.db.GetContext(ctx, &b, q, id); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNotFound
+			return nil, ErrBookNotFound
 		}
 		return nil, err
 	}
@@ -46,14 +48,37 @@ func (r *BookRepository) GetByID(ctx context.Context, id string) (*domain.Book, 
 }
 
 func (r *BookRepository) List(ctx context.Context, f domain.BookFilter) ([]domain.Book, int, error) {
-	qList := fmt.Sprintf(`SELECT * FROM books ORDER BY %s %s LIMIT $1 OFFSET $2`, *f.Order, *f.Sort)
-	qCount := `SELECT COUNT(*) FROM books`
-	var res []domain.Book
-
 	var page int
 	var limit int
 	var offset int
+	var order string
+	var sort string
+	var title string
+	var description string
+	var res []domain.Book
+	var count int
 	var err error
+
+	if f.Order != nil {
+		switch *f.Order {
+		case "author":
+			order = "author"
+		case "published_year":
+			order = "published_year"
+		case "created_by":
+			order = "created_by"
+		case "updated_at":
+			order = "updated_at"
+		default:
+			order = "created_at"
+		}
+	}
+
+	if f.Sort == nil || *f.Sort != "DESC" && *f.Sort != "ASC" {
+		sort = "DESC"
+	} else {
+		sort = "ASC"
+	}
 
 	if f.Page != nil {
 		page, err = strconv.Atoi(*f.Page)
@@ -76,12 +101,30 @@ func (r *BookRepository) List(ctx context.Context, f domain.BookFilter) ([]domai
 
 	offset = (page - 1) * limit
 
-	err = r.db.SelectContext(ctx, &res, qList, limit, offset)
+	if f.Search != nil {
+		title = "%" + *f.Search + "%"
+		description = "%" + *f.Search + "%"
+	}
+
+	rawQ := `
+	SELECT id, title, author, description, isbn, published_year, created_by, created_at, updated_at
+	FROM books
+	WHERE title LIKE $1
+	OR description LIKE $2
+    ORDER BY %s %s LIMIT $3 OFFSET $4
+    `
+
+	qList := fmt.Sprintf(rawQ, order, sort)
+
+	qCount := `SELECT COUNT(*) FROM books WHERE title LIKE $1 OR description LIKE $2`
+
+	err = r.db.SelectContext(ctx, &res, qList, title, description, limit, offset)
+
 	if err != nil {
 		return nil, 0, err
 	}
-	var count int
-	if err = r.db.GetContext(ctx, &count, qCount); err != nil {
+
+	if err = r.db.GetContext(ctx, &count, qCount, title, description); err != nil {
 		return nil, 0, err
 	}
 

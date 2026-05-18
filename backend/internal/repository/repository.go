@@ -9,7 +9,6 @@ import (
 )
 
 var ErrNotFound = errors.New("not found")
-var ErrUserAlreadyExists = errors.New("user already exists")
 
 type Repository struct {
 	User   *UserRepository

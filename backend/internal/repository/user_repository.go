@@ -2,12 +2,18 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"frontdev333/bookshelf/internal/domain"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/lib/pq/pqerror"
+)
+
+var (
+	ErrUserNotFound      = errors.New("user not found")
+	ErrUserAlreadyExists = errors.New("user already exists")
 )
 
 type UserRepository struct {
@@ -39,7 +45,14 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*domain.
 }
 
 func (r *UserRepository) getByField(ctx context.Context, field string, val interface{}) (*domain.User, error) {
-	return getEntityByField[domain.User](ctx, r.db, "users", field, val)
+	res, err := getEntityByField[domain.User](ctx, r.db, "users", field, val)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			return nil, ErrUserNotFound
+		}
+		return nil, err
+	}
+	return res, nil
 }
 
 func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*domain.User, error) {
