@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"frontdev333/bookshelf/internal/domain"
-	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -47,64 +46,18 @@ func (r *BookRepository) GetByID(ctx context.Context, id string) (*domain.Book, 
 	return &b, nil
 }
 
-func (r *BookRepository) List(ctx context.Context, f domain.BookFilter) ([]domain.Book, int, error) {
-	var page int
-	var limit int
-	var offset int
-	var order string
-	var sort string
-	var title string
-	var description string
+func (r *BookRepository) List(
+	ctx context.Context,
+	order,
+	sort,
+	search string,
+	page,
+	limit,
+	offset int,
+
+) ([]domain.Book, int, error) {
 	var res []domain.Book
 	var count int
-	var err error
-
-	if f.Order != nil {
-		switch *f.Order {
-		case "author":
-			order = "author"
-		case "published_year":
-			order = "published_year"
-		case "created_by":
-			order = "created_by"
-		case "updated_at":
-			order = "updated_at"
-		default:
-			order = "created_at"
-		}
-	}
-
-	if f.Sort == nil || *f.Sort != "DESC" && *f.Sort != "ASC" {
-		sort = "DESC"
-	} else {
-		sort = "ASC"
-	}
-
-	if f.Page != nil {
-		page, err = strconv.Atoi(*f.Page)
-		if err != nil {
-			return nil, 0, err
-		}
-	} else {
-		page = 1
-	}
-
-	if f.Limit != nil {
-
-		limit, err = strconv.Atoi(*f.Limit)
-		if err != nil {
-			return nil, 0, err
-		}
-	} else {
-		limit = 10
-	}
-
-	offset = (page - 1) * limit
-
-	if f.Search != nil {
-		title = "%" + *f.Search + "%"
-		description = "%" + *f.Search + "%"
-	}
 
 	rawQ := `
 	SELECT id, title, author, description, isbn, published_year, created_by, created_at, updated_at
@@ -118,13 +71,11 @@ func (r *BookRepository) List(ctx context.Context, f domain.BookFilter) ([]domai
 
 	qCount := `SELECT COUNT(*) FROM books WHERE title LIKE $1 OR description LIKE $2`
 
-	err = r.db.SelectContext(ctx, &res, qList, title, description, limit, offset)
-
-	if err != nil {
+	if err := r.db.SelectContext(ctx, &res, qList, search, search, limit, offset); err != nil {
 		return nil, 0, err
 	}
 
-	if err = r.db.GetContext(ctx, &count, qCount, title, description); err != nil {
+	if err := r.db.GetContext(ctx, &count, qCount, search, search); err != nil {
 		return nil, 0, err
 	}
 

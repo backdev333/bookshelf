@@ -51,12 +51,13 @@ func (r *ReviewRepository) ListByBookID(ctx context.Context, bookID string, page
 	return res, count, nil
 }
 
-func (r *ReviewRepository) Update(ctx context.Context, review *domain.Review) (*domain.ReviewResponse, error) {
-	q := `UPDATE reviews SET id = :id, book_id = :book_id, user_id = :user_id, rating = :rating, title = :title, content = :content, created_at = :created_at, updated_at = :updated_at WHERE id = :id`
+func (r *ReviewRepository) Update(ctx context.Context, review *domain.Review) error {
+	q := `UPDATE reviews SET book_id = :book_id, user_id = :user_id, rating = :rating, title = :title, content = :content, updated_at = :updated_at WHERE id = :id`
 	if _, err := r.db.NamedExecContext(ctx, q, review); err != nil {
-		return nil, err
+		return err
 	}
-	return nil, nil
+
+	return nil
 }
 
 func (r *ReviewRepository) Delete(ctx context.Context, id string) error {

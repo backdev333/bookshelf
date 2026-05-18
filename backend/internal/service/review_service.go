@@ -194,7 +194,14 @@ func (s *ReviewService) Update(
 	r.Content = content
 	r.Rating = rating
 
-	return s.reviewRepo.Update(ctx, r)
+	if err = s.reviewRepo.Update(ctx, r); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrReviewNotFound
+		}
+		return nil, err
+	}
+
+	return r.ToResponse(u.ToSummary()), nil
 }
 
 func (s *ReviewService) Delete(

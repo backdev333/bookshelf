@@ -104,20 +104,74 @@ func (s *BookService) GetByID(ctx context.Context, id string) (*domain.BookRespo
 	return b.ToResponse(u.ToSummary(), &reviewsCount), nil
 }
 
-func (s *BookService) List(ctx context.Context, filter domain.BookFilter) (*domain.BookListResponse, error) {
-	filter.SeedDefaults()
+func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.BookListResponse, error) {
+	f.SeedDefaults()
 
-	cPage, err := strconv.Atoi(*filter.Page)
+	var order string
+	var sort string
+	var search string
+	var page int
+	var limit int
+	var offset int
+	var err error
+
+	if f.Order != nil {
+		switch *f.Order {
+		case "author":
+			order = "author"
+		case "published_year":
+			order = "published_year"
+		case "created_by":
+			order = "created_by"
+		case "updated_at":
+			order = "updated_at"
+		default:
+			order = "created_at"
+		}
+	}
+
+	if f.Sort == nil || *f.Sort != "DESC" && *f.Sort != "ASC" {
+		sort = "DESC"
+	} else {
+		sort = "ASC"
+	}
+
+	if f.Search != nil {
+		search = "%" + *f.Search + "%"
+	}
+
+	cPage, err := strconv.Atoi(*f.Page)
 	if err != nil {
 		return nil, err
 	}
 
-	cLimit, err := strconv.Atoi(*filter.Limit)
+	cLimit, err := strconv.Atoi(*f.Limit)
 	if err != nil {
 		return nil, err
 	}
 
-	list, count, err := s.bookRepo.List(ctx, filter)
+	if f.Page != nil {
+		page, err = strconv.Atoi(*f.Page)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		page = 1
+	}
+
+	if f.Limit != nil {
+
+		limit, err = strconv.Atoi(*f.Limit)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		limit = 10
+	}
+
+	offset = (page - 1) * limit
+
+	list, count, err := s.bookRepo.List(ctx, order, sort, search, page, limit, offset)
 	if err != nil {
 		return nil, err
 	}
