@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"frontdev333/bookshelf/internal/domain"
 	"log/slog"
 	"strconv"
@@ -140,16 +141,6 @@ func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.Bo
 		search = "%" + *f.Search + "%"
 	}
 
-	cPage, err := strconv.Atoi(*f.Page)
-	if err != nil {
-		return nil, err
-	}
-
-	cLimit, err := strconv.Atoi(*f.Limit)
-	if err != nil {
-		return nil, err
-	}
-
 	if f.Page != nil {
 		page, err = strconv.Atoi(*f.Page)
 		if err != nil {
@@ -160,7 +151,6 @@ func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.Bo
 	}
 
 	if f.Limit != nil {
-
 		limit, err = strconv.Atoi(*f.Limit)
 		if err != nil {
 			return nil, err
@@ -171,9 +161,11 @@ func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.Bo
 
 	offset = (page - 1) * limit
 
+	//TODO:: проверить
+
 	list, count, err := s.bookRepo.List(ctx, order, sort, search, page, limit, offset)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("s.bookRepo.List(): %w", err)
 	}
 
 	booksResponse := make([]domain.BookResponse, 0, len(list))
@@ -192,7 +184,7 @@ func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.Bo
 
 	reviewsCounts, err := s.reviewRepo.GetReviewsCounts(ctx, booksIDs)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("s.reviewRepo.GetReviewsCounts(): %w", err)
 	}
 
 	for _, v := range list {
@@ -215,10 +207,10 @@ func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.Bo
 	return &domain.BookListResponse{
 		Data: booksResponse,
 		Pagination: domain.Pagination{
-			Page:       cPage,
-			Limit:      cLimit,
+			Page:       page,
+			Limit:      limit,
 			Total:      count,
-			TotalPages: (count + cLimit - 1) / cLimit,
+			TotalPages: (count + limit - 1) / limit,
 		},
 	}, nil
 }
