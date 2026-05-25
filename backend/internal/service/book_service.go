@@ -115,25 +115,25 @@ func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.Bo
 	var offset int
 	var err error
 
-	if f.Order != nil {
-		switch *f.Order {
+	if f.Sort != nil {
+		switch *f.Sort {
 		case "author":
-			order = "author"
+			sort = "author"
 		case "published_year":
-			order = "published_year"
+			sort = "published_year"
 		case "created_by":
-			order = "created_by"
+			sort = "created_by"
 		case "updated_at":
-			order = "updated_at"
+			sort = "updated_at"
 		default:
-			order = "created_at"
+			sort = "created_at"
 		}
 	}
 
-	if f.Sort == nil || *f.Sort != "DESC" && *f.Sort != "ASC" {
-		sort = "DESC"
+	if f.Order == nil || *f.Order != "DESC" && *f.Order != "ASC" {
+		order = "DESC"
 	} else {
-		sort = "ASC"
+		order = "ASC"
 	}
 
 	if f.Search != nil {
@@ -171,21 +171,21 @@ func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.Bo
 
 	offset = (page - 1) * limit
 
-	list, count, err := s.bookRepo.List(ctx, order, sort, search, page, limit, offset)
+	list, count, err := s.bookRepo.List(ctx, sort, order, search, page, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
 	booksResponse := make([]domain.BookResponse, 0, len(list))
-	authorsNicknames := make([]string, 0)
+	creatorsIDs := make([]string, 0, len(list))
 	booksIDs := make([]string, 0, len(list))
 
 	for _, v := range list {
-		authorsNicknames = append(authorsNicknames, v.Author)
+		creatorsIDs = append(creatorsIDs, v.CreatedBy)
 		booksIDs = append(booksIDs, v.ID)
 	}
 
-	authors, err := s.userRepo.GetByUsernames(ctx, authorsNicknames)
+	creators, err := s.userRepo.GetByIDs(ctx, creatorsIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -196,9 +196,9 @@ func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.Bo
 	}
 
 	for _, v := range list {
-		u, ok := authors[v.Author]
+		u, ok := creators[v.CreatedBy]
 		if !ok || u == nil {
-			slog.Error("BookService List()", "error", "author not found", "username", v.Author)
+			slog.Error("BookService List()", "error", "creator not found", "user_id", v.CreatedBy)
 			continue
 		}
 

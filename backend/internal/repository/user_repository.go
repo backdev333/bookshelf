@@ -112,6 +112,8 @@ func (r *UserRepository) GetByUsernames(ctx context.Context, usernames []string)
 		return nil, err
 	}
 
+	q = r.db.Rebind(q)
+
 	if err = r.db.SelectContext(ctx, &list, q, args...); err != nil {
 		return nil, err
 	}

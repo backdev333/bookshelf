@@ -97,11 +97,11 @@ func (r *ReviewRepository) GetReviewsCounts(ctx context.Context, bookIDs []strin
 	q = r.db.Rebind(q)
 
 	res := make([]struct {
-		BookID string `json:"book_id"`
-		Count  int    `json:"count"`
+		BookID string `db:"book_id"`
+		Count  int    `db:"count"`
 	}, 0, len(bookIDs))
 
-	if err = r.db.SelectContext(ctx, &res, q, args); err != nil {
+	if err = r.db.SelectContext(ctx, &res, q, args...); err != nil {
 		return nil, err
 	}
 
