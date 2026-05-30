@@ -19,7 +19,8 @@ type Review struct {
 type ReviewResponse struct {
 	ID        string      `json:"id"`
 	BookID    string      `json:"book_id"`
-	UserID    UserSummary `json:"user_id"`
+	UserID    string      `json:"user_id"`
+	User      UserSummary `json:"user"`
 	Rating    int         `json:"rating"`
 	Title     *string     `json:"title"`
 	Content   string      `json:"content"`
@@ -56,7 +57,8 @@ func (r *Review) ToResponse(user UserSummary) *ReviewResponse {
 	return &ReviewResponse{
 		ID:        r.ID,
 		BookID:    r.BookID,
-		UserID:    user,
+		UserID:    r.UserID,
+		User:      user,
 		Rating:    r.Rating,
 		Title:     title,
 		Content:   r.Content,

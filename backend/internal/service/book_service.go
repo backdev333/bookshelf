@@ -38,19 +38,29 @@ func (s *BookService) Create(
 		return nil, ErrBookAuthorEmpty
 	}
 
-	desc := sql.NullString{
-		String: *req.Description,
-		Valid:  true,
+	var desc sql.NullString
+	var isbn sql.NullString
+	var pubYear sql.NullInt32
+
+	if req.Description == nil {
+		desc.Valid = false
+	} else {
+		desc.String = *req.Description
+		desc.Valid = true
 	}
 
-	isbn := sql.NullString{
-		String: *req.ISBN,
-		Valid:  true,
+	if req.ISBN == nil {
+		isbn.Valid = false
+	} else {
+		isbn.String = *req.ISBN
+		isbn.Valid = true
 	}
 
-	pubYear := sql.NullInt32{
-		Int32: int32(*req.PublishedYear),
-		Valid: true,
+	if req.PublishedYear == nil {
+		pubYear.Valid = false
+	} else {
+		pubYear.Int32 = int32(*req.PublishedYear)
+		pubYear.Valid = true
 	}
 
 	b := &domain.Book{

@@ -158,11 +158,13 @@ func (s *ReviewService) Update(
 		return nil, ErrNotReviewOwner
 	}
 
-	var title string
-	if req.Title != nil || utf8.RuneCountInString(*req.Title) > 1 {
-		title = *req.Title
-	} else {
-		title = r.Title.String
+	title := r.Title
+	if req.Title != nil {
+		if utf8.RuneCountInString(*req.Title) == 0 {
+			title = sql.NullString{String: "", Valid: false}
+		} else {
+			title = sql.NullString{String: *req.Title, Valid: true}
+		}
 	}
 
 	var rating int
@@ -187,10 +189,7 @@ func (s *ReviewService) Update(
 		content = r.Content
 	}
 
-	r.Title = sql.NullString{
-		String: title,
-		Valid:  true,
-	}
+	r.Title = title
 	r.Content = content
 	r.Rating = rating
 

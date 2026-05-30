@@ -14,22 +14,33 @@ import (
 func (h *Handler) ListBookReviews(w http.ResponseWriter, r *http.Request) {
 	bookID := chi.URLParam(r, "bookId")
 
-	page, err := strconv.Atoi(r.URL.Query().Get("page"))
-	if err != nil {
-		slog.Error("review_handler.ListBookReviews()", "error", err)
-		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "unknown error")
-		return
+	var err error
+	var page int
+	var limit int
+
+	getPage := r.URL.Query().Get("page")
+	if getPage != "" {
+		page, err = strconv.Atoi(getPage)
+		if err != nil {
+			slog.Error("review_handler.ListBookReviews()", "error", err, "page", page)
+			writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "unknown error")
+			return
+		}
 	}
 
 	if page <= 0 {
 		page = 1
 	}
 
-	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
-	if err != nil {
-		slog.Error("review_handler.ListBookReviews()", "error", err)
-		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "unknown error")
-		return
+	getLimit := r.URL.Query().Get("limit")
+
+	if getLimit != "" {
+		limit, err = strconv.Atoi(getLimit)
+		if err != nil {
+			slog.Error("review_handler.ListBookReviews()", "error", err, "limit", limit)
+			writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "unknown error")
+			return
+		}
 	}
 
 	if limit <= 0 {
