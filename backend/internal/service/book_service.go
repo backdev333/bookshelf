@@ -212,11 +212,11 @@ func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.Bo
 			continue
 		}
 
-		reviewsCount, ok := reviewsCounts[v.ID]
-		if !ok {
-			slog.Warn("reviews count not found", "book_id", v.ID)
-			continue
+		reviewsCount := 0
+		if c, ok := reviewsCounts[v.ID]; ok {
+			reviewsCount = c
 		}
+
 		b := v.ToResponse(u.ToSummary(), &reviewsCount)
 
 		booksResponse = append(booksResponse, *b)

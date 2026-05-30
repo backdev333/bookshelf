@@ -98,7 +98,7 @@ func (b *Book) ToResponse(creator UserSummary, reviewsCount *int) *BookResponse 
 		Title:         b.Title,
 		Author:        b.Author,
 		Creator:       creator,
-		CreatedBy:     creator.Username,
+		CreatedBy:     creator.ID,
 		CreatedAt:     b.CreatedAt,
 		UpdatedAt:     b.UpdatedAt,
 		Description:   desc,

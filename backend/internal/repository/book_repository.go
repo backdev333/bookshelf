@@ -59,7 +59,7 @@ func (r *BookRepository) List(
 	var res []domain.Book
 	var count int
 
-	// TODO:: не используется page
+	offset = (page - 1) * limit
 
 	rawQ := `
 	SELECT id, title, author, description, isbn, published_year, created_by, created_at, updated_at
