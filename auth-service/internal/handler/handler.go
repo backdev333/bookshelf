@@ -66,7 +66,13 @@ func writeError(w http.ResponseWriter, r *http.Request, status int, code, messag
 		RequestID: reqID,
 	}
 
-	writeJSON(w, status, errResp)
+	msg := struct {
+		Error domain.ErrorResponse `json:"error"`
+	}{
+		Error: errResp,
+	}
+
+	writeJSON(w, status, msg)
 }
 
 func writeValidationError(w http.ResponseWriter, r *http.Request, details []domain.ErrorDetail) {
