@@ -21,7 +21,7 @@ func main() {
 	defer db.Close()
 
 	repo := repository.NewUserRepository(db)
-	userServcie := service.New(repo, cfg.JWTSecret)
+	userServcie := service.NewUserService(repo, cfg.JWTSecret)
 	h := handler.New(userServcie, cfg.JWTSecret)
 	mux := http.NewServeMux()
 

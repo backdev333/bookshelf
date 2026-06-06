@@ -27,7 +27,7 @@ type UserService struct {
 	jwtSecret string
 }
 
-func New(repo *repository.UserRepository, jwtSecret string) *UserService {
+func NewUserService(repo *repository.UserRepository, jwtSecret string) *UserService {
 	return &UserService{
 		repo:      repo,
 		jwtSecret: jwtSecret,
@@ -49,7 +49,7 @@ func (s *UserService) Login(ctx context.Context, req domain.LoginRequest) (*doma
 		return nil, ErrInvalidCredentials
 	}
 
-	token, err := s.generateToken(u.ID)
+	token, err := s.generateAccessToken(u.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -83,7 +83,7 @@ func (s *UserService) Register(ctx context.Context, req domain.RegisterRequest) 
 		return nil, err
 	}
 
-	token, err := s.generateToken(u.ID)
+	token, err := s.generateAccessToken(u.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (s *UserService) validateRegisterReq(ctx context.Context, req domain.Regist
 	return nil
 }
 
-func (s *UserService) generateToken(userID string) (string, error) {
+func (s *UserService) generateAccessToken(userID string) (string, error) {
 
 	claims := jwt.RegisteredClaims{
 		Subject:   userID,
