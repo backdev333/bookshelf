@@ -1,190 +1,189 @@
 package handler
 
 import (
-	domain2 "bookshelf/auth-service/internal/domain"
+	"bookshelf/auth-svc/internal/domain"
+	"bookshelf/auth-svc/internal/service"
 	"errors"
-	handler2 "frontdev333/bookshelf/internal/handler"
-	"frontdev333/bookshelf/internal/service"
 	"log/slog"
 	"net/http"
 	"strings"
 )
 
-func (h *handler2.Handler) Register(w http.ResponseWriter, r *http.Request) {
-	var req domain2.RegisterRequest
+func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
+	var req domain.RegisterRequest
 
-	if err := handler2.decode(r, &req); err != nil {
+	if err := decode(r, &req); err != nil {
 		slog.Error("Register() decode body", "error", err)
-		handler2.writeError(w, r, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON in request body")
+		writeError(w, r, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON in request body")
 		return
 	}
 
-	errDetails := make([]domain2.ErrorDetail, 0)
+	errDetails := make([]domain.ErrorDetail, 0)
 
 	if strings.TrimSpace(req.Username) == "" {
-		errDetails = append(errDetails, domain2.ErrorDetail{
+		errDetails = append(errDetails, domain.ErrorDetail{
 			Field:   "Username",
 			Message: "Username must not be empty",
 		})
 	}
 
 	if strings.TrimSpace(req.Password) == "" {
-		errDetails = append(errDetails, domain2.ErrorDetail{
+		errDetails = append(errDetails, domain.ErrorDetail{
 			Field:   "Password",
 			Message: "Password must not be empty",
 		})
 	}
 
 	if strings.TrimSpace(req.Email) == "" {
-		errDetails = append(errDetails, domain2.ErrorDetail{
+		errDetails = append(errDetails, domain.ErrorDetail{
 			Field:   "Email",
 			Message: "Email must not be empty",
 		})
 	}
 
 	if len(errDetails) > 0 {
-		handler2.writeValidationError(w, r, errDetails)
+		writeValidationError(w, r, errDetails)
 		return
 	}
-	errDetails = []domain2.ErrorDetail{}
+	errDetails = []domain.ErrorDetail{}
 
-	resp, err := h.services.User.Register(r.Context(), req)
+	resp, err := h.svc.Register(r.Context(), req)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidCredentials) {
-			handler2.writeError(w, r, http.StatusUnauthorized, "INVALID_CREDENTIALS", "Invalid email or password")
+			writeError(w, r, http.StatusUnauthorized, "INVALID_CREDENTIALS", "Invalid email or password")
 			return
 		}
 		if errors.Is(err, service.ErrUserExists) {
-			errDetails = append(errDetails, domain2.ErrorDetail{
+			errDetails = append(errDetails, domain.ErrorDetail{
 				Field:   "Email",
 				Message: "User with this email already exists",
 			})
-			handler2.writeValidationError(w, r, errDetails)
+			writeValidationError(w, r, errDetails)
 			return
 		}
 		if errors.Is(err, service.ErrInvalidPassword) {
-			errDetails = append(errDetails, domain2.ErrorDetail{
+			errDetails = append(errDetails, domain.ErrorDetail{
 				Field:   "Password",
 				Message: "Password must be at least 8 characters",
 			})
-			handler2.writeValidationError(w, r, errDetails)
+			writeValidationError(w, r, errDetails)
 			return
 		}
 		if errors.Is(err, service.ErrInvalidUsername) {
-			errDetails = append(errDetails, domain2.ErrorDetail{
+			errDetails = append(errDetails, domain.ErrorDetail{
 				Field:   "Username",
 				Message: "Username must be at least 3 characters",
 			})
-			handler2.writeValidationError(w, r, errDetails)
+			writeValidationError(w, r, errDetails)
 			return
 		}
 		if errors.Is(err, service.ErrInvalidEmail) {
-			errDetails = append(errDetails, domain2.ErrorDetail{
+			errDetails = append(errDetails, domain.ErrorDetail{
 				Field:   "Email",
 				Message: "Invalid email format",
 			})
-			handler2.writeValidationError(w, r, errDetails)
+			writeValidationError(w, r, errDetails)
 			return
 		}
 		if errors.Is(err, service.ErrUsernameExists) {
-			errDetails = append(errDetails, domain2.ErrorDetail{
+			errDetails = append(errDetails, domain.ErrorDetail{
 				Field:   "Username",
 				Message: "Username already exists",
 			})
-			handler2.writeValidationError(w, r, errDetails)
+			writeValidationError(w, r, errDetails)
 			return
 		}
-		slog.Error("Register() service error", "error", err)
-		handler2.writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "Internal error")
+		slog.Error("Register() svc error", "error", err)
+		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "Internal error")
 		return
 	}
 
-	handler2.writeJSON(w, http.StatusCreated, resp)
+	writeJSON(w, http.StatusCreated, resp)
 }
 
-func (h *handler2.Handler) Login(w http.ResponseWriter, r *http.Request) {
-	var loginReq domain2.LoginRequest
-	if err := handler2.decode(r, &loginReq); err != nil {
+func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
+	var loginReq domain.LoginRequest
+	if err := decode(r, &loginReq); err != nil {
 		slog.Error("Login() decode", "error", err)
-		handler2.writeError(w, r, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON in request body")
+		writeError(w, r, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON in request body")
 		return
 	}
 
-	errDetails := make([]domain2.ErrorDetail, 0)
+	errDetails := make([]domain.ErrorDetail, 0)
 
 	if strings.TrimSpace(loginReq.Email) == "" {
-		errDetails = append(errDetails, domain2.ErrorDetail{
+		errDetails = append(errDetails, domain.ErrorDetail{
 			Field:   "Username",
 			Message: "Username must be at least 3 characters",
 		})
 	}
 
 	if strings.TrimSpace(loginReq.Password) == "" {
-		errDetails = append(errDetails, domain2.ErrorDetail{
+		errDetails = append(errDetails, domain.ErrorDetail{
 			Field:   "Password",
 			Message: "Password must not be empty",
 		})
 	}
 
 	if len(errDetails) > 0 {
-		handler2.writeValidationError(w, r, errDetails)
+		writeValidationError(w, r, errDetails)
 		return
 	}
-	errDetails = []domain2.ErrorDetail{}
+	errDetails = []domain.ErrorDetail{}
 
-	resp, err := h.services.User.Login(r.Context(), loginReq)
+	resp, err := h.svc.Login(r.Context(), loginReq)
 	if err != nil {
 		if errors.Is(err, service.ErrInvalidCredentials) {
-			handler2.writeError(w, r, http.StatusUnauthorized, "INVALID_CREDENTIALS", "Invalid email or password")
+			writeError(w, r, http.StatusUnauthorized, "INVALID_CREDENTIALS", "Invalid email or password")
 			return
 		}
 		if errors.Is(err, service.ErrInvalidEmail) {
-			errDetails = append(errDetails, domain2.ErrorDetail{
+			errDetails = append(errDetails, domain.ErrorDetail{
 				Field:   "Email",
 				Message: "Invalid email format",
 			})
-			handler2.writeValidationError(w, r, errDetails)
+			writeValidationError(w, r, errDetails)
 			return
 		}
-		slog.Error("Login() service error", "error", err)
-		handler2.writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "Internal error")
+		slog.Error("Login() svc error", "error", err)
+		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "Internal error")
 		return
 	}
 
-	handler2.writeJSON(w, http.StatusOK, resp)
+	writeJSON(w, http.StatusOK, resp)
 }
 
-func (h *handler2.Handler) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
-	userID := handler2.getUserID(r.Context())
+func (h *AuthHandler) GetMe(w http.ResponseWriter, r *http.Request) {
+	userID := getUserID(r.Context())
 
-	u, err := h.services.User.GetByID(r.Context(), userID)
+	u, err := h.svc.GetByID(r.Context(), userID)
 	if err != nil {
-		handler2.writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "Server error. Try later.")
-		slog.Error("GetCurrentUser()", "error", err)
+		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "Server error. Try later.")
+		slog.Error("GetMe()", "error", err)
 		return
 	}
 
-	handler2.writeJSON(w, http.StatusOK, u.ToPublic())
+	writeJSON(w, http.StatusOK, u.ToPublic())
 	return
 }
 
-func (h *handler2.Handler) UpdateCurrentUser(w http.ResponseWriter, r *http.Request) {
-	userID := handler2.getUserID(r.Context())
-	var req domain2.UpdateUserRequest
+func (h *AuthHandler) UpdateMe(w http.ResponseWriter, r *http.Request) {
+	userID := getUserID(r.Context())
+	var req domain.UpdateUserRequest
 
-	if err := handler2.decode(r, &req); err != nil {
-		slog.Error("UpdateCurrentUser() decode", "error", err)
-		handler2.writeError(w, r, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON in request body")
+	if err := decode(r, &req); err != nil {
+		slog.Error("UpdateMe() decode", "error", err)
+		writeError(w, r, http.StatusBadRequest, "INVALID_JSON", "Invalid JSON in request body")
 		return
 	}
 
-	u, err := h.services.User.Update(r.Context(), userID, req)
+	u, err := h.svc.Update(r.Context(), userID, req)
 	if err != nil {
-		handler2.writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "Server error. Try later.")
-		slog.Error("UpdateCurrentUser()", "error", err)
+		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "Server error. Try later.")
+		slog.Error("UpdateMe()", "error", err)
 		return
 	}
 
-	handler2.writeJSON(w, http.StatusOK, u.ToPublic())
+	writeJSON(w, http.StatusOK, u.ToPublic())
 
 }

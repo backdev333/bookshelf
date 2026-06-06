@@ -1,4 +1,4 @@
-module bookshelf/auth-service
+module bookshelf/auth-svc
 
 go 1.26.3
 
