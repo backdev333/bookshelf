@@ -84,7 +84,13 @@ func writeValidationError(w http.ResponseWriter, r *http.Request, details []doma
 		RequestID: reqID,
 	}
 
-	writeJSON(w, http.StatusUnprocessableEntity, errResp)
+	msg := struct {
+		Error domain.ErrorResponse `json:"error"`
+	}{
+		Error: errResp,
+	}
+
+	writeJSON(w, http.StatusUnprocessableEntity, msg)
 }
 
 func decode(r *http.Request, v interface{}) error {
