@@ -1,16 +1,15 @@
 package service
 
 import (
+	"bookshelf/auth-service/internal/domain"
+	"bookshelf/auth-service/internal/repository"
 	"context"
 	"errors"
 	"fmt"
-	"frontdev333/bookshelf/internal/domain"
-	"frontdev333/bookshelf/internal/repository"
 	"log/slog"
 	"net/mail"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -26,6 +25,13 @@ var (
 type UserService struct {
 	repo      *repository.UserRepository
 	jwtSecret string
+}
+
+func New(repo *repository.UserRepository, jwtSecret string) *UserService {
+	return &UserService{
+		repo:      repo,
+		jwtSecret: jwtSecret,
+	}
 }
 
 func (s *UserService) Login(ctx context.Context, req domain.LoginRequest) (*domain.AuthResponse, error) {

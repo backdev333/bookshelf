@@ -1,9 +1,10 @@
 package repository
 
 import (
+	"bookshelf/auth-service/internal/domain"
 	"context"
 	"errors"
-	"frontdev333/bookshelf/internal/domain"
+	repository2 "frontdev333/bookshelf/internal/repository"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -18,6 +19,10 @@ var (
 
 type UserRepository struct {
 	db *sqlx.DB
+}
+
+func New(db *sqlx.DB) *UserRepository {
+	return &UserRepository{db: db}
 }
 
 func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
@@ -45,9 +50,9 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*domain.
 }
 
 func (r *UserRepository) getByField(ctx context.Context, field string, val interface{}) (*domain.User, error) {
-	res, err := getEntityByField[domain.User](ctx, r.db, "users", field, val)
+	res, err := repository2.getEntityByField[domain.User](ctx, r.db, "users", field, val)
 	if err != nil {
-		if errors.Is(err, ErrNotFound) {
+		if errors.Is(err, repository2.ErrNotFound) {
 			return nil, ErrUserNotFound
 		}
 		return nil, err

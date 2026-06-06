@@ -1,6 +1,7 @@
 package domain
 
 import (
+	domain2 "bookshelf/auth-service/internal/domain"
 	"database/sql"
 	"time"
 )
@@ -17,20 +18,20 @@ type Review struct {
 }
 
 type ReviewResponse struct {
-	ID        string      `json:"id"`
-	BookID    string      `json:"book_id"`
-	UserID    string      `json:"user_id"`
-	User      UserSummary `json:"user"`
-	Rating    int         `json:"rating"`
-	Title     *string     `json:"title"`
-	Content   string      `json:"content"`
-	CreatedAt time.Time   `json:"created_at"`
-	UpdatedAt time.Time   `json:"updated_at"`
+	ID        string              `json:"id"`
+	BookID    string              `json:"book_id"`
+	UserID    string              `json:"user_id"`
+	User      domain2.UserSummary `json:"user"`
+	Rating    int                 `json:"rating"`
+	Title     *string             `json:"title"`
+	Content   string              `json:"content"`
+	CreatedAt time.Time           `json:"created_at"`
+	UpdatedAt time.Time           `json:"updated_at"`
 }
 
 type ReviewListResponse struct {
-	Data       []ReviewResponse `json:"data"`
-	Pagination Pagination       `json:"pagination"`
+	Data       []ReviewResponse   `json:"data"`
+	Pagination domain2.Pagination `json:"pagination"`
 }
 
 type CreateReviewRequest struct {
@@ -45,7 +46,7 @@ type UpdateReviewRequest struct {
 	Title   *string `json:"title"`
 }
 
-func (r *Review) ToResponse(user UserSummary) *ReviewResponse {
+func (r *Review) ToResponse(user domain2.UserSummary) *ReviewResponse {
 
 	var title *string
 	title = nil

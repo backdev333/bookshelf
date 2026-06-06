@@ -1,6 +1,7 @@
 package handler
 
 import (
+	domain2 "bookshelf/auth-service/internal/domain"
 	"errors"
 	"frontdev333/bookshelf/internal/domain"
 	"frontdev333/bookshelf/internal/service"
@@ -62,17 +63,17 @@ func (h *Handler) CreateBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errDetails := make([]domain.ErrorDetail, 0)
+	errDetails := make([]domain2.ErrorDetail, 0)
 
 	if strings.TrimSpace(req.Title) == "" {
-		errDetails = append(errDetails, domain.ErrorDetail{
+		errDetails = append(errDetails, domain2.ErrorDetail{
 			Field:   "Title",
 			Message: "Title is required",
 		})
 	}
 
 	if strings.TrimSpace(req.Author) == "" {
-		errDetails = append(errDetails, domain.ErrorDetail{
+		errDetails = append(errDetails, domain2.ErrorDetail{
 			Field:   "Author",
 			Message: "Author is required",
 		})
@@ -82,7 +83,7 @@ func (h *Handler) CreateBook(w http.ResponseWriter, r *http.Request) {
 		writeValidationError(w, r, errDetails)
 		return
 	}
-	errDetails = []domain.ErrorDetail{}
+	errDetails = []domain2.ErrorDetail{}
 
 	b, err := h.services.Book.Create(r.Context(), userID, req)
 	if err != nil {

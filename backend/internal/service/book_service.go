@@ -1,6 +1,8 @@
 package service
 
 import (
+	domain2 "bookshelf/auth-service/internal/domain"
+	repository2 "bookshelf/auth-service/internal/repository"
 	"context"
 	"database/sql"
 	"errors"
@@ -21,7 +23,7 @@ var (
 
 type BookService struct {
 	bookRepo   *repository.BookRepository
-	userRepo   *repository.UserRepository
+	userRepo   *repository2.UserRepository
 	reviewRepo *repository.ReviewRepository
 }
 
@@ -89,7 +91,7 @@ func (s *BookService) Create(
 		return nil, err
 	}
 
-	return b.ToResponse(domain.UserSummary{
+	return b.ToResponse(domain2.UserSummary{
 		ID:       userId,
 		Username: u.Username,
 	}, &reviewsCount), nil
@@ -224,7 +226,7 @@ func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.Bo
 
 	return &domain.BookListResponse{
 		Data: booksResponse,
-		Pagination: domain.Pagination{
+		Pagination: domain2.Pagination{
 			Page:       cPage,
 			Limit:      cLimit,
 			Total:      count,

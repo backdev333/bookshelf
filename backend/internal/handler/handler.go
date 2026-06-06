@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"bookshelf/auth-service/internal/domain"
 	"context"
 	"encoding/json"
-	"frontdev333/bookshelf/internal/domain"
 	"frontdev333/bookshelf/internal/service"
 	"log/slog"
 	"net/http"
