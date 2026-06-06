@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { BookOpen, Plus, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -9,16 +9,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { SearchInput } from './SearchInput.tsx';
+import { SearchInput } from './SearchInput';
 import { useAuthStore } from '@/stores/auth';
+import { useLogout } from '@/api/auth';
 
 export function Header() {
-  const navigate = useNavigate();
-  const { isAuthenticated, user, logout } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const logout = useLogout();
 
   const handleLogout = () => {
-    logout();
-    navigate('/');
+    logout.mutate();
   };
 
   const initials = user?.username
@@ -68,9 +68,12 @@ export function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
+                  <DropdownMenuItem 
+                    onClick={handleLogout}
+                    disabled={logout.isPending}
+                  >
                     <LogOut className="h-4 w-4 mr-2" />
-                    Выйти
+                    {logout.isPending ? 'Выход...' : 'Выйти'}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -90,8 +93,3 @@ export function Header() {
     </header>
   );
 }
-
-
-
-
-

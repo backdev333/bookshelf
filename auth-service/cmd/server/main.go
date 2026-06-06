@@ -5,6 +5,7 @@ import (
 	"bookshelf/auth-service/internal/handler"
 	"bookshelf/auth-service/internal/repository"
 	"bookshelf/auth-service/internal/service"
+	"log"
 	"log/slog"
 	"net/http"
 
@@ -13,8 +14,13 @@ import (
 
 func main() {
 	cfg := config.Load()
-	db := sqlx.Connect("postgres", cfg.DatabaseURL)
-	repo := repository.New(db)
+	db, err := sqlx.Connect("postgres", cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("connect to db error: %s", err.Error())
+	}
+	defer db.Close()
+
+	repo := repository.NewUserRepository(db)
 	userServcie := service.New(repo, cfg.JWTSecret)
 	h := handler.New(userServcie, cfg.JWTSecret)
 	mux := http.NewServeMux()

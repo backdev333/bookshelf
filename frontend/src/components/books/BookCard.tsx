@@ -38,6 +38,3 @@ export function BookCard({ book }: BookCardProps) {
     </Link>
   );
 }
-
-
-

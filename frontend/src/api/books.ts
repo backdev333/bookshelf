@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { api } from './client.ts';
+import { booksApi } from './client';
 import type { 
   Book,
   BookListResponse,
@@ -13,10 +13,10 @@ export function useBooks(params: BooksParams = {}) {
   return useQuery({
     queryKey: ['books', params],
     queryFn: async () => {
-      const response = await api.get<BookListResponse>('/api/v1/books', { params });
+      const response = await booksApi.get<BookListResponse>('/api/v1/books', { params });
       return response.data;
     },
-    retry: false, // Не повторять если endpoint не реализован
+    retry: false,
   });
 }
 
@@ -24,7 +24,7 @@ export function useBook(id: string) {
   return useQuery({
     queryKey: ['books', id],
     queryFn: async () => {
-      const response = await api.get<Book>(`/api/v1/books/${id}`);
+      const response = await booksApi.get<Book>(`/api/v1/books/${id}`);
       return response.data;
     },
     enabled: !!id,
@@ -37,7 +37,7 @@ export function useCreateBook() {
 
   return useMutation({
     mutationFn: async (data: CreateBookRequest) => {
-      const response = await api.post<Book>('/api/v1/books', data);
+      const response = await booksApi.post<Book>('/api/v1/books', data);
       return response.data;
     },
     onSuccess: () => {
@@ -55,7 +55,7 @@ export function useUpdateBook(id: string) {
 
   return useMutation({
     mutationFn: async (data: UpdateBookRequest) => {
-      const response = await api.put<Book>(`/api/v1/books/${id}`, data);
+      const response = await booksApi.put<Book>(`/api/v1/books/${id}`, data);
       return response.data;
     },
     onSuccess: () => {
@@ -74,7 +74,7 @@ export function useDeleteBook() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/api/v1/books/${id}`);
+      await booksApi.delete(`/api/v1/books/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['books'] });
@@ -85,8 +85,3 @@ export function useDeleteBook() {
     },
   });
 }
-
-
-
-
-

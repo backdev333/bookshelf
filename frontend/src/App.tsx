@@ -6,6 +6,7 @@ import { CreateBookPage } from '@/pages/CreateBookPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { ProfilePage } from '@/pages/ProfilePage'
+import { UserProfilePage } from '@/pages/UserProfilePage'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
         />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="users/:userId" element={<UserProfilePage />} />
         <Route
           path="profile"
           element={
@@ -38,8 +40,4 @@ function App() {
 }
 
 export default App
-
-
-
-
 

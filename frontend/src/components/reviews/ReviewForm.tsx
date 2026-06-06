@@ -12,7 +12,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { StarRating } from './StarRating.tsx';
+import { StarRating } from './StarRating';
 import { useCreateReview } from '@/api/reviews';
 
 const reviewSchema = z.object({
@@ -109,8 +109,4 @@ export function ReviewForm({ bookId, onSuccess }: ReviewFormProps) {
     </Form>
   );
 }
-
-
-
-
 

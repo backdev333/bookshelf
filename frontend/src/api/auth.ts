@@ -1,13 +1,14 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { api } from './client.ts';
+import { authApi } from './client';
 import { useAuthStore } from '@/stores/auth';
 import type { 
   AuthResponse, 
   LoginRequest, 
   RegisterRequest,
   User,
+  PublicUser,
   UpdateUserRequest
 } from '@/types/api';
 
@@ -17,7 +18,7 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: async (data: LoginRequest) => {
-      const response = await api.post<AuthResponse>('/api/v1/auth/login', data);
+      const response = await authApi.post<AuthResponse>('/api/v1/auth/login', data);
       return response.data;
     },
     onSuccess: (data) => {
@@ -37,7 +38,7 @@ export function useRegister() {
 
   return useMutation({
     mutationFn: async (data: RegisterRequest) => {
-      const response = await api.post<AuthResponse>('/api/v1/auth/register', data);
+      const response = await authApi.post<AuthResponse>('/api/v1/auth/register', data);
       return response.data;
     },
     onSuccess: (data) => {
@@ -52,13 +53,35 @@ export function useRegister() {
   });
 }
 
+// Project 2: Logout with API call
+export function useLogout() {
+  const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout);
+
+  return useMutation({
+    mutationFn: async () => {
+      await authApi.post('/api/v1/auth/logout');
+    },
+    onSuccess: () => {
+      logout();
+      navigate('/');
+      toast.success('Вы вышли из аккаунта');
+    },
+    onError: () => {
+      // Logout locally even if API fails
+      logout();
+      navigate('/');
+    },
+  });
+}
+
 export function useCurrentUser() {
   const token = useAuthStore((state) => state.token);
   
   return useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
-      const response = await api.get<User>('/api/v1/users/me');
+      const response = await authApi.get<User>('/api/v1/users/me');
       return response.data;
     },
     enabled: !!token,
@@ -70,7 +93,7 @@ export function useUpdateProfile() {
 
   return useMutation({
     mutationFn: async (data: UpdateUserRequest) => {
-      const response = await api.put<User>('/api/v1/users/me', data);
+      const response = await authApi.put<User>('/api/v1/users/me', data);
       return response.data;
     },
     onSuccess: (data) => {
@@ -83,5 +106,13 @@ export function useUpdateProfile() {
   });
 }
 
-
-
+export function useUser(userId: string) {
+  return useQuery({
+    queryKey: ['users', userId],
+    queryFn: async () => {
+      const response = await authApi.get<PublicUser>(`/api/v1/users/${userId}`);
+      return response.data;
+    },
+    enabled: !!userId,
+  });
+}

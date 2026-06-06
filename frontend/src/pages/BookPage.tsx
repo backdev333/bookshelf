@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, BookOpen, Star } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,8 +17,6 @@ import { useBook, useDeleteBook, useUpdateBook } from '@/api/books';
 import { useBookReviews } from '@/api/reviews';
 import { useAuthStore } from '@/stores/auth';
 import { formatDate } from '@/lib/date';
-import { FeatureLocked, FeatureError } from '@/components/ui/FeatureLocked';
-import { FEATURE_STAGES, isFeatureNotImplemented, isNetworkError } from '@/config/stages';
 import {
   Dialog,
   DialogContent,
@@ -28,14 +26,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { FeatureLocked } from '@/components/ui/FeatureLocked';
+import { FEATURE_STAGES, isFeatureNotImplemented } from '@/config/stages';
 
 export function BookPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
   
-  const { data: book, isLoading: bookLoading, isError: bookError, error: bookErrorData, refetch: refetchBook } = useBook(id!);
-  const { data: reviews, isLoading: reviewsLoading, isError: reviewsError, error: reviewsErrorData } = useBookReviews(id!);
+  const { data: book, isLoading: bookLoading, isError: bookError, error: bookApiError } = useBook(id!);
+  const { data: reviews, isLoading: reviewsLoading, isError: reviewsError, error: reviewsApiError } = useBookReviews(id!);
   const deleteBook = useDeleteBook();
   const updateBook = useUpdateBook(id!);
 
@@ -76,6 +76,25 @@ export function BookPage() {
     navigate('/');
   };
 
+  // Показываем заглушку, если books-service не реализован
+  if (bookError && isFeatureNotImplemented(bookApiError)) {
+    const booksFeature = FEATURE_STAGES.books;
+    return (
+      <div className="text-center py-12">
+        <FeatureLocked
+          title={`${booksFeature.icon} ${booksFeature.name}`}
+          description={booksFeature.description}
+          stage={booksFeature.stage}
+          hint="Реализуйте GET /api/v1/books/{id} в books-service"
+          serviceName="books-service"
+        />
+        <Button asChild className="mt-8">
+          <Link to="/">Вернуться на главную</Link>
+        </Button>
+      </div>
+    );
+  }
+
   if (bookLoading) {
     return (
       <div className="space-y-6">
@@ -84,50 +103,6 @@ export function BookPage() {
           <Skeleton className="h-10 w-3/4" />
           <Skeleton className="h-6 w-1/2" />
           <Skeleton className="h-32 w-full" />
-        </div>
-      </div>
-    );
-  }
-
-  // Если endpoint книг не реализован — показываем FeatureLocked
-  if (bookError && isFeatureNotImplemented(bookErrorData)) {
-    return (
-      <div className="space-y-6">
-        <Button variant="ghost" asChild>
-          <Link to="/">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Назад к каталогу
-          </Link>
-        </Button>
-        <div className="max-w-lg mx-auto py-8">
-          <FeatureLocked
-            title="📖 Страница книги"
-            description="Детали книги станут доступны после реализации BookHandler"
-            stage={FEATURE_STAGES.books.stage}
-            hint="Реализуйте GET /api/v1/books/{id}"
-            icon={<BookOpen className="h-8 w-8 text-muted-foreground" />}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Если сетевая ошибка — показываем FeatureError
-  if (bookError && isNetworkError(bookErrorData)) {
-    return (
-      <div className="space-y-6">
-        <Button variant="ghost" asChild>
-          <Link to="/">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Назад к каталогу
-          </Link>
-        </Button>
-        <div className="max-w-lg mx-auto py-8">
-          <FeatureError
-            title="Не удалось загрузить книгу"
-            error={bookErrorData as Error}
-            onRetry={() => refetchBook()}
-          />
         </div>
       </div>
     );
@@ -143,9 +118,6 @@ export function BookPage() {
       </div>
     );
   }
-
-  // Проверяем доступность рецензий отдельно
-  const reviewsNotImplemented = reviewsError && isFeatureNotImplemented(reviewsErrorData);
 
   return (
     <motion.div
@@ -297,14 +269,13 @@ export function BookPage() {
       <div className="space-y-6">
         <h2 className="font-display text-2xl font-semibold">Рецензии</h2>
 
-        {/* Если рецензии не реализованы — показываем FeatureLocked */}
-        {reviewsNotImplemented ? (
+        {reviewsError && isFeatureNotImplemented(reviewsApiError) ? (
           <FeatureLocked
-            title="⭐ Рецензии"
-            description="Раздел рецензий станет доступен после реализации ReviewHandler"
+            title={`${FEATURE_STAGES.reviews.icon} ${FEATURE_STAGES.reviews.name}`}
+            description={FEATURE_STAGES.reviews.description}
             stage={FEATURE_STAGES.reviews.stage}
             hint={FEATURE_STAGES.reviews.hint}
-            icon={<Star className="h-8 w-8 text-muted-foreground" />}
+            serviceName="books-service"
           />
         ) : (
           <>
@@ -347,6 +318,3 @@ export function BookPage() {
     </motion.div>
   );
 }
-
-
-

@@ -1,4 +1,4 @@
-import { BookCard } from './BookCard.tsx';
+import { BookCard } from './BookCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Book } from '@/types/api';
 
@@ -38,8 +38,4 @@ export function BookGrid({ books, loading }: BookGridProps) {
     </div>
   );
 }
-
-
-
-
 

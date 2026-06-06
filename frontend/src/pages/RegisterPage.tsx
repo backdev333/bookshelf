@@ -168,7 +168,3 @@ export function RegisterPage() {
   );
 }
 
-
-
-
-

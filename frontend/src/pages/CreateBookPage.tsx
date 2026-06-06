@@ -175,7 +175,3 @@ export function CreateBookPage() {
   );
 }
 
-
-
-
-

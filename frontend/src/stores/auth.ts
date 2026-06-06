@@ -28,17 +28,12 @@ export const useAuthStore = create<AuthState>()(
         set({ token: null, user: null, isAuthenticated: false }),
     }),
     {
-      name: 'bookshelf-auth',
+      name: 'bookshelf-auth-p2',
       partialize: (state) => ({ 
-        token: state.token, 
+        token: state.token,
         user: state.user,
         isAuthenticated: state.isAuthenticated 
       }),
     }
   )
 );
-
-
-
-
-

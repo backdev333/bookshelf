@@ -1,4 +1,4 @@
-// Types based on OpenAPI spec: project1-monolith-openapi.yaml
+// Types based on OpenAPI spec: project2-*-openapi.yaml
 
 // ==================== AUTH ====================
 export interface RegisterRequest {
@@ -28,6 +28,12 @@ export interface User {
   updated_at: string;
 }
 
+export interface PublicUser {
+  id: string;
+  username: string;
+  created_at: string;
+}
+
 export interface UpdateUserRequest {
   username?: string;
 }
@@ -45,6 +51,16 @@ export interface Book {
   created_by: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface BookDetails extends Book {
+  creator: UserSummary;
+  recent_reviews: Review[];
+}
+
+export interface UserSummary {
+  id: string;
+  username: string;
 }
 
 export interface CreateBookRequest {
@@ -115,6 +131,7 @@ export interface ApiError {
   code: string;
   message: string;
   details?: ErrorDetail[];
+  request_id?: string;
 }
 
 export interface ErrorDetail {
@@ -126,6 +143,7 @@ export interface HealthResponse {
   status: 'ok' | 'degraded' | 'unhealthy';
   version: string;
   timestamp: string;
+  checks?: Record<string, string>;
 }
 
 // ==================== QUERY PARAMS ====================
@@ -133,16 +151,16 @@ export interface BooksParams {
   page?: number;
   limit?: number;
   search?: string;
-  sort?: 'title' | 'author' | 'created_at' | 'rating';
+  sort?: 'title' | 'author' | 'created_at' | 'rating' | 'published_year';
   order?: 'asc' | 'desc';
+  year_from?: number;
+  year_to?: number;
+  min_rating?: number;
 }
 
 export interface ReviewsParams {
   page?: number;
   limit?: number;
+  sort?: 'created_at' | 'rating';
+  order?: 'asc' | 'desc';
 }
-
-
-
-
-

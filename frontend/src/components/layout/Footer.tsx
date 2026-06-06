@@ -1,4 +1,5 @@
 import { BookOpen } from "lucide-react";
+import { ServiceStatus } from "./ServiceStatus";
 
 export function Footer() {
   return (
@@ -8,9 +9,10 @@ export function Footer() {
           <BookOpen className="h-4 w-4" />
           <span className="text-sm">Bookshelf by Praxis © 2026</span>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Проект 1: Clean Architecture Monolith
-        </p>
+
+        <ServiceStatus />
+
+        <p className="text-sm text-muted-foreground">Проект 2: Microservices</p>
       </div>
     </footer>
   );

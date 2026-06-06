@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { api } from './client.ts';
+import { booksApi } from './client';
 import type { 
   Review,
   ReviewListResponse,
@@ -13,14 +13,14 @@ export function useBookReviews(bookId: string, params: ReviewsParams = {}) {
   return useQuery({
     queryKey: ['reviews', bookId, params],
     queryFn: async () => {
-      const response = await api.get<ReviewListResponse>(
+      const response = await booksApi.get<ReviewListResponse>(
         `/api/v1/books/${bookId}/reviews`, 
         { params }
       );
       return response.data;
     },
     enabled: !!bookId,
-    retry: false, // Не повторять если endpoint не реализован
+    retry: false,
   });
 }
 
@@ -28,7 +28,7 @@ export function useReview(id: string) {
   return useQuery({
     queryKey: ['reviews', 'single', id],
     queryFn: async () => {
-      const response = await api.get<Review>(`/api/v1/reviews/${id}`);
+      const response = await booksApi.get<Review>(`/api/v1/reviews/${id}`);
       return response.data;
     },
     enabled: !!id,
@@ -41,7 +41,7 @@ export function useCreateReview(bookId: string) {
 
   return useMutation({
     mutationFn: async (data: CreateReviewRequest) => {
-      const response = await api.post<Review>(
+      const response = await booksApi.post<Review>(
         `/api/v1/books/${bookId}/reviews`, 
         data
       );
@@ -67,7 +67,7 @@ export function useUpdateReview(reviewId: string, bookId: string) {
 
   return useMutation({
     mutationFn: async (data: UpdateReviewRequest) => {
-      const response = await api.put<Review>(
+      const response = await booksApi.put<Review>(
         `/api/v1/reviews/${reviewId}`, 
         data
       );
@@ -91,7 +91,7 @@ export function useDeleteReview(bookId: string) {
 
   return useMutation({
     mutationFn: async (reviewId: string) => {
-      await api.delete(`/api/v1/reviews/${reviewId}`);
+      await booksApi.delete(`/api/v1/reviews/${reviewId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['reviews', bookId] });
@@ -105,5 +105,16 @@ export function useDeleteReview(bookId: string) {
   });
 }
 
-
-
+export function useUserReviews(userId: string, params: ReviewsParams = {}) {
+  return useQuery({
+    queryKey: ['reviews', 'user', userId, params],
+    queryFn: async () => {
+      const response = await booksApi.get<ReviewListResponse>(
+        `/api/v1/users/${userId}/reviews`,
+        { params }
+      );
+      return response.data;
+    },
+    enabled: !!userId,
+  });
+}

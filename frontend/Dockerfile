@@ -13,8 +13,10 @@ RUN npm ci
 COPY . .
 
 # Build arguments for environment variables
-ARG VITE_API_URL=http://localhost:8080
-ENV VITE_API_URL=$VITE_API_URL
+ARG VITE_AUTH_URL=http://localhost:8081
+ARG VITE_BOOKS_URL=http://localhost:8082
+ENV VITE_AUTH_URL=$VITE_AUTH_URL
+ENV VITE_BOOKS_URL=$VITE_BOOKS_URL
 
 # Build the application
 RUN npm run build
@@ -33,6 +35,3 @@ EXPOSE 80
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
-
-
-

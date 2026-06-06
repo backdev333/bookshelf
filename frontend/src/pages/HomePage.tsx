@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -11,8 +11,8 @@ import {
 } from '@/components/ui/select';
 import { BookGrid } from '@/components/books/BookGrid';
 import { useBooks } from '@/api/books';
-import { FeatureLocked, FeatureError } from '@/components/ui/FeatureLocked';
-import { FEATURE_STAGES, isFeatureNotImplemented, isNetworkError } from '@/config/stages';
+import { FeatureLocked } from '@/components/ui/FeatureLocked';
+import { FEATURE_STAGES, isFeatureNotImplemented } from '@/config/stages';
 
 export function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -22,41 +22,13 @@ export function HomePage() {
   const page = parseInt(searchParams.get('page') || '1');
   const search = searchParams.get('search') || undefined;
   
-  const { data, isLoading, isError, error, refetch } = useBooks({
+  const { data, isLoading, isError, error } = useBooks({
     page,
     limit: 20,
     search,
     sort: sort as any,
     order: order as any,
   });
-
-  // Если endpoint не реализован — показываем FeatureLocked
-  if (isError && isFeatureNotImplemented(error)) {
-    return (
-      <div className="max-w-lg mx-auto py-12">
-        <FeatureLocked
-          title="📚 Каталог книг"
-          description="Список книг станет доступен после реализации BookHandler"
-          stage={FEATURE_STAGES.books.stage}
-          hint={FEATURE_STAGES.books.hint}
-          icon={<BookOpen className="h-8 w-8 text-muted-foreground" />}
-        />
-      </div>
-    );
-  }
-
-  // Если сетевая ошибка — показываем FeatureError
-  if (isError && isNetworkError(error)) {
-    return (
-      <div className="max-w-lg mx-auto py-12">
-        <FeatureError
-          title="Не удалось загрузить каталог"
-          error={error as Error}
-          onRetry={() => refetch()}
-        />
-      </div>
-    );
-  }
 
   const handleSortChange = (value: string) => {
     setSort(value);
@@ -83,6 +55,20 @@ export function HomePage() {
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  // Показываем заглушку, если books-service не реализован
+  if (isError && isFeatureNotImplemented(error)) {
+    const booksFeature = FEATURE_STAGES.books;
+    return (
+      <FeatureLocked
+        title={`${booksFeature.icon} ${booksFeature.name}`}
+        description={booksFeature.description}
+        stage={booksFeature.stage}
+        hint={booksFeature.hint}
+        serviceName="books-service"
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -153,8 +139,4 @@ export function HomePage() {
     </div>
   );
 }
-
-
-
-
 
