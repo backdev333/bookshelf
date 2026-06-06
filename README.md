@@ -27,3 +27,17 @@
 | auth-postgres | БД для auth-service |
 | books-postgres | БД для books-service |
 | frontend | React-приложение |
+
+### auth-service включает в себя:
+- domain/user.go — структуры User, AuthResponse, RegisterRequest
+- handler/auth_handler.go — регистрация, логин
+- service/user_service.go — бизнес-логика аутентификации
+- repository/user_repository.go — работа с таблицей users
+- Таблица users в отдельной базе auth_db
+
+### books-service:
+- domain/book.go, domain/review.go — структуры Book, Review
+- handler/book_handler.go, handler/review_handler.go — CRUD API
+- service/book_service.go, service/review_service.go — бизнес-логика
+- repository/book_repository.go, repository/review_repository.go
+- Таблицы books, reviews в отдельной базе books_db
