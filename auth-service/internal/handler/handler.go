@@ -13,6 +13,10 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
+type contextKey string
+
+const userIDKey contextKey = "userID"
+const requestID contextKey = "requestID"
 const version = "1.0.0"
 
 type AuthHandler struct {
@@ -43,7 +47,7 @@ func (h *AuthHandler) Health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, v)
 }
 
-func AuthMiddleware(svc service.UserService) func(http.Handler) http.Handler {
+func AuthMiddleware(svc *service.UserService) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authTitle := r.Header.Get("Authorization")
@@ -63,7 +67,7 @@ func AuthMiddleware(svc service.UserService) func(http.Handler) http.Handler {
 				return
 			}
 
-			userID, err := h.services.User.ValidateToken(authSlice[1])
+			userID, err := svc.ValidateToken(authSlice[1])
 			if err != nil {
 				writeError(w, r, http.StatusUnauthorized, "INVALID_OR_EXPIRED_TOKEN", "Invalid or expired token")
 				return
