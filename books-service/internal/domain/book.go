@@ -1,7 +1,6 @@
 package domain
 
 import (
-	domain2 "bookshelf/auth-service/internal/domain"
 	"database/sql"
 	"time"
 )
@@ -10,7 +9,7 @@ type Book struct {
 	ID            string          `db:"id"`
 	Title         string          `db:"title"`
 	Author        string          `db:"author"`
-	CreatedBy     string          `db:"created_by"`
+	UserID        string          `db:"created_by"`
 	CreatedAt     time.Time       `db:"created_at"`
 	UpdatedAt     time.Time       `db:"updated_at"`
 	Description   sql.NullString  `db:"description"`
@@ -21,18 +20,18 @@ type Book struct {
 }
 
 type BookResponse struct {
-	ID            string              `json:"id"`
-	Title         string              `json:"title"`
-	Author        string              `json:"author"`
-	Creator       domain2.UserSummary `json:"creator"`
-	CreatedBy     string              `json:"created_by"`
-	CreatedAt     time.Time           `json:"created_at"`
-	UpdatedAt     time.Time           `json:"updated_at"`
-	Description   *string             `json:"description"`
-	ISBN          *string             `json:"isbn"`
-	ReviewsCount  *int                `json:"reviews_count"`
-	PublishedYear *int                `json:"published_year"`
-	AverageRating *float64            `json:"average_rating"`
+	ID            string             `json:"id"`
+	Title         string             `json:"title"`
+	Author        string             `json:"author"`
+	Creator       domain.UserSummary `json:"creator"`
+	UserID        string             `json:"created_by"`
+	CreatedAt     time.Time          `json:"created_at"`
+	UpdatedAt     time.Time          `json:"updated_at"`
+	Description   *string            `json:"description"`
+	ISBN          *string            `json:"isbn"`
+	ReviewsCount  *int               `json:"reviews_count"`
+	PublishedYear *int               `json:"published_year"`
+	AverageRating *float64           `json:"average_rating"`
 }
 
 type BookListResponse struct {
@@ -99,7 +98,7 @@ func (b *Book) ToResponse(creator domain2.UserSummary, reviewsCount *int) *BookR
 		Title:         b.Title,
 		Author:        b.Author,
 		Creator:       creator,
-		CreatedBy:     creator.ID,
+		UserID:        creator.ID,
 		CreatedAt:     b.CreatedAt,
 		UpdatedAt:     b.UpdatedAt,
 		Description:   desc,

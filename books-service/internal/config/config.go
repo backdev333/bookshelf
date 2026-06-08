@@ -5,9 +5,9 @@ import (
 )
 
 type Config struct {
-	Port        string
-	DatabaseURL string
-	JWTSecret   string
+	Port           string
+	DatabaseURL    string
+	AuthServiceURL string
 }
 
 func Load() *Config {
@@ -31,8 +31,8 @@ func Load() *Config {
 	}
 
 	return &Config{
-		Port:        port,
-		DatabaseURL: dbUrl,
-		JWTSecret:   jwtSecret,
+		Port:           port,
+		DatabaseURL:    dbUrl,
+		AuthServiceURL: jwtSecret,
 	}
 }
