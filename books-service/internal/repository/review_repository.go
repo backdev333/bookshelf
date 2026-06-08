@@ -1,8 +1,8 @@
 package repository
 
 import (
+	"bookshelf/books-service/internal/domain"
 	"context"
-	"frontdev333/bookshelf/internal/domain"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"

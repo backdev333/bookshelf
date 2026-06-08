@@ -1,11 +1,11 @@
 package repository
 
 import (
+	"bookshelf/books-service/internal/domain"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-	"frontdev333/bookshelf/internal/domain"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -17,10 +17,14 @@ type BookRepository struct {
 	db *sqlx.DB
 }
 
+func NewBookRepository(db *sqlx.DB) *BookRepository {
+	return &BookRepository{db: db}
+}
+
 func (r *BookRepository) Create(ctx context.Context, book *domain.Book) error {
 	q := `INSERT INTO books (id, title, author, description, isbn, published_year, created_by, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`
 	bookID := uuid.NewString()
-	if _, err := r.db.ExecContext(ctx, q, bookID, book.Title, book.Author, book.Description, book.ISBN, book.PublishedYear, book.CreatedBy, book.CreatedAt, book.UpdatedAt); err != nil {
+	if _, err := r.db.ExecContext(ctx, q, bookID, book.Title, book.Author, book.Description, book.ISBN, book.PublishedYear, book.UserID, book.CreatedAt, book.UpdatedAt); err != nil {
 		return err
 	}
 	book.ID = bookID
