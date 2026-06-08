@@ -4,7 +4,6 @@ import (
 	"bookshelf/auth-service/internal/domain"
 	"context"
 	"errors"
-	repository2 "frontdev333/bookshelf/internal/repository"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
