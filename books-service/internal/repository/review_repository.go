@@ -36,23 +36,16 @@ func (r *ReviewRepository) getByField(ctx context.Context, field string, val int
 	return getEntityByField[domain.Review](ctx, r.db, "reviews", field, val)
 }
 
-func (r *ReviewRepository) ListByBookID(ctx context.Context, bookID string, page, limit int) ([]domain.Review, int, error) {
+func (r *ReviewRepository) ListByBookID(ctx context.Context, bookID string) ([]domain.Review, error) {
 	var res []domain.Review
-	var count int
-	var err error
 
-	qList := `SELECT * FROM reviews WHERE book_id = $1 LIMIT $2 OFFSET $3`
-	qCount := `SELECT COUNT(*) FROM reviews WHERE book_id = $1`
+	qList := `SELECT * FROM reviews WHERE book_id = $1`
 
-	if err = r.db.SelectContext(ctx, &res, qList, bookID, limit, (page-1)*limit); err != nil {
-		return nil, 0, err
+	if err := r.db.SelectContext(ctx, &res, qList, bookID); err != nil {
+		return nil, err
 	}
 
-	if err = r.db.GetContext(ctx, &count, qCount, bookID); err != nil {
-		return nil, 0, err
-	}
-
-	return res, count, nil
+	return res, nil
 }
 
 func (r *ReviewRepository) Update(ctx context.Context, review *domain.Review) error {
