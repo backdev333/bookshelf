@@ -63,6 +63,14 @@ type BookFilter struct {
 	Limit  *string `json:"limit"`
 }
 
+type ListParams struct {
+	Order  string
+	Sort   string
+	Search string
+	Page   int
+	Limit  int
+}
+
 func (b *Book) ToResponse(creator domain2.UserSummary, reviewsCount *int) *BookResponse {
 	var desc *string
 	desc = nil

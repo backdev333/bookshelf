@@ -12,6 +12,10 @@ type ReviewRepository struct {
 	db *sqlx.DB
 }
 
+func NewReviewRepository(db *sqlx.DB) *ReviewRepository {
+	return &ReviewRepository{db: db}
+}
+
 func (r *ReviewRepository) Create(ctx context.Context, review *domain.Review) error {
 	reviewID := uuid.NewString()
 

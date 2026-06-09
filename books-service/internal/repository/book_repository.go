@@ -52,18 +52,12 @@ func (r *BookRepository) GetByID(ctx context.Context, id string) (*domain.Book, 
 
 func (r *BookRepository) List(
 	ctx context.Context,
-	order,
-	sort,
-	search string,
-	page,
-	limit,
-	offset int,
-
+	f domain.ListParams,
 ) ([]domain.Book, int, error) {
 	var res []domain.Book
 	var count int
 
-	offset = (page - 1) * limit
+	offset := (f.Page - 1) * f.Limit
 
 	rawQ := `
 	SELECT id, title, author, description, isbn, published_year, created_by, created_at, updated_at
@@ -73,19 +67,71 @@ func (r *BookRepository) List(
     ORDER BY %s %s LIMIT $3 OFFSET $4
     `
 
-	qList := fmt.Sprintf(rawQ, order, sort)
+	qList := fmt.Sprintf(rawQ, f.Order, f.Sort)
 
 	qCount := `SELECT COUNT(*) FROM books WHERE title LIKE $1 OR description LIKE $2`
 
-	if err := r.db.SelectContext(ctx, &res, qList, search, search, limit, offset); err != nil {
+	if err := r.db.SelectContext(ctx, &res, qList, f.Search, f.Search, f.Limit, offset); err != nil {
 		return nil, 0, err
 	}
 
-	if err := r.db.GetContext(ctx, &count, qCount, search, search); err != nil {
+	if err := r.db.GetContext(ctx, &count, qCount, f.Search, f.Search); err != nil {
 		return nil, 0, err
 	}
 
 	return res, count, nil
+}
+
+func (r *BookRepository) ListByUserID(ctx context.Context, userID string, f domain.ListParams) ([]domain.Book, int, error) {
+	rawQ := `
+	SELECT id, title, author, description, isbn, published_year, created_by, created_at, updated_at
+	FROM books
+	WHERE user_id = $1
+    AND title LIKE $2
+    OR description LIKE $3
+	ORDER BY %s %s LIMIT $4 OFFSET $5  
+	`
+	q := fmt.Sprintf(rawQ, f.Order, f.Sort)
+	offset := (f.Page - 1) * f.Limit
+	var res []domain.Book
+
+	if err := r.db.SelectContext(
+		ctx,
+		&res,
+		q,
+		userID,
+		f.Search,
+		f.Search,
+		f.Limit,
+		offset,
+	); err != nil {
+		return nil, 0, fmt.Errorf("BookRepository.ListByUserID: %w", err)
+	}
+
+	rawQCount := `SELECT COUNT(*)
+	FROM books
+	WHERE user_id = $1
+    AND title LIKE $2
+    OR description LIKE $3
+	ORDER BY %s %s LIMIT $4 OFFSET $5  
+	`
+	q = fmt.Sprintf(rawQCount, f.Order, f.Sort)
+
+	var countRes int
+
+	if err := r.db.SelectContext(
+		ctx,
+		&countRes,
+		q,
+		userID,
+		f.Search,
+		f.Search,
+		f.Limit,
+		offset,
+	); err != nil {
+		return nil, 0, fmt.Errorf("BookRepository.ListByUserID: %w", err)
+	}
+	return res, countRes, nil
 }
 
 func (r *BookRepository) Update(ctx context.Context, book *domain.Book) error {
