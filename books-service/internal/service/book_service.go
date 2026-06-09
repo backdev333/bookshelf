@@ -244,7 +244,7 @@ func (s *BookService) Update(ctx context.Context, userID, bookID string, req dom
 		return nil, ErrBookNotFound
 	}
 
-	if b.CreatedBy != userID {
+	if b.UserID != userID {
 		return nil, ErrNotBookOwner
 	}
 
@@ -300,7 +300,7 @@ func (s *BookService) Delete(ctx context.Context, userID, bookID string) error {
 		return ErrBookNotFound
 	}
 
-	if b.CreatedBy != userID {
+	if b.UserID != userID {
 		return ErrNotBookOwner
 	}
 
