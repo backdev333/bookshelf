@@ -1,17 +1,14 @@
 package service
 
 import (
-	domain2 "bookshelf/auth-service/internal/domain"
-	repository2 "bookshelf/auth-service/internal/repository"
+	"bookshelf/books-service/internal/domain"
+	"bookshelf/books-service/internal/repository"
 	"context"
 	"database/sql"
 	"errors"
-	"frontdev333/bookshelf/internal/domain"
 	"log/slog"
 	"strconv"
 	"time"
-
-	"frontdev333/bookshelf/internal/repository"
 )
 
 var (
@@ -22,9 +19,11 @@ var (
 )
 
 type BookService struct {
-	bookRepo   *repository.BookRepository
-	userRepo   *repository2.UserRepository
-	reviewRepo *repository.ReviewRepository
+	bookRepo *repository.BookRepository
+}
+
+func NewBookService(repo *repository.BookRepository) *BookService {
+	return &BookService{repo}
 }
 
 func (s *BookService) Create(
@@ -68,7 +67,7 @@ func (s *BookService) Create(
 	b := &domain.Book{
 		Title:         req.Title,
 		Author:        req.Author,
-		CreatedBy:     userId,
+		UserID:        userId,
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
 		Description:   desc,
@@ -124,7 +123,6 @@ func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.Bo
 	var search string
 	var page int
 	var limit int
-	var offset int
 	var err error
 
 	if f.Sort != nil {
@@ -181,9 +179,14 @@ func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.Bo
 		limit = 10
 	}
 
-	offset = (page - 1) * limit
-
-	list, count, err := s.bookRepo.List(ctx, sort, order, search, page, limit, offset)
+	params := domain.ListParams{
+		Order:  order,
+		Sort:   sort,
+		Search: search,
+		Page:   page,
+		Limit:  limit,
+	}
+	list, count, err := s.bookRepo.List(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +229,7 @@ func (s *BookService) List(ctx context.Context, f domain.BookFilter) (*domain.Bo
 
 	return &domain.BookListResponse{
 		Data: booksResponse,
-		Pagination: domain2.Pagination{
+		Pagination: domain.Pagination{
 			Page:       cPage,
 			Limit:      cLimit,
 			Total:      count,
