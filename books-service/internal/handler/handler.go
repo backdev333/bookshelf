@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"bookshelf/auth-service/internal/domain"
+	"bookshelf/books-service/internal/domain"
+	"bookshelf/books-service/internal/service"
 	"context"
 	"encoding/json"
-	"frontdev333/bookshelf/internal/service"
 	"log/slog"
 	"net/http"
 	"time"
@@ -18,8 +18,8 @@ const userIDKey contextKey = "userID"
 const requestID contextKey = "requestID"
 const version = "1.0.0"
 
-type Handler struct {
-	services  *service.Service
+type BookHandler struct {
+	service   *service.BookService
 	jwtSecret string
 }
 
@@ -29,14 +29,14 @@ type pong struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-func New(services *service.Service, jwtSecret string) *Handler {
-	return &Handler{
-		services:  services,
+func New(services *service.BookService, jwtSecret string) *BookHandler {
+	return &BookHandler{
+		service:   services,
 		jwtSecret: jwtSecret,
 	}
 }
 
-func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
+func (h *BookHandler) Health(w http.ResponseWriter, r *http.Request) {
 	v := pong{
 		Status:    "ok",
 		Version:   version,
@@ -46,7 +46,7 @@ func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, v)
 }
 
-func (h *Handler) Ready(w http.ResponseWriter, r *http.Request) {
+func (h *BookHandler) Ready(w http.ResponseWriter, r *http.Request) {
 	type readyPong struct {
 		pong
 		Database string `json:"database"`
