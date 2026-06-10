@@ -29,10 +29,9 @@ type pong struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-func New(services *service.BookService, jwtSecret string) *BookHandler {
+func NewBookHandler(services *service.BookService) *BookHandler {
 	return &BookHandler{
-		service:   services,
-		jwtSecret: jwtSecret,
+		service: services,
 	}
 }
 
