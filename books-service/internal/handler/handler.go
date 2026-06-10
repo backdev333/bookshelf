@@ -19,7 +19,7 @@ const requestID contextKey = "requestID"
 const version = "1.0.0"
 
 type BookHandler struct {
-	service   *service.BookService
+	svc       *service.BookService
 	jwtSecret string
 }
 
@@ -31,7 +31,7 @@ type pong struct {
 
 func NewBookHandler(services *service.BookService) *BookHandler {
 	return &BookHandler{
-		service: services,
+		svc: services,
 	}
 }
 

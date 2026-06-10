@@ -26,7 +26,7 @@ func (h *BookHandler) List(w http.ResponseWriter, r *http.Request) {
 		Limit:  &limit,
 	}
 
-	list, err := h.service.List(r.Context(), f)
+	list, err := h.svc.List(r.Context(), f)
 	if err != nil {
 		slog.Error("book_handler.ListBook()", "error", err)
 		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "unknown error")
@@ -39,7 +39,7 @@ func (h *BookHandler) List(w http.ResponseWriter, r *http.Request) {
 func (h *BookHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	bookId := chi.URLParam(r, "id")
 
-	b, err := h.service.GetByID(r.Context(), bookId)
+	b, err := h.svc.GetByID(r.Context(), bookId)
 	if err != nil {
 		if errors.Is(err, service.ErrBookNotFound) {
 			writeError(w, r, http.StatusNotFound, "BOOK_NOT_FOUND", "book not found")
@@ -84,7 +84,7 @@ func (h *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	errDetails = []domain.ErrorDetail{}
 
-	b, err := h.service.Create(r.Context(), userID, req)
+	b, err := h.svc.Create(r.Context(), userID, req)
 	if err != nil {
 		slog.Error("book_handler.CreateBook()", "error", err)
 		writeError(w, r, http.StatusInternalServerError, "INTERNAL_ERROR", "unknown error")
@@ -106,7 +106,7 @@ func (h *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	b, err := h.service.Update(r.Context(), userID, bookID, req)
+	b, err := h.svc.Update(r.Context(), userID, bookID, req)
 	if err != nil {
 		if errors.Is(err, service.ErrNotBookOwner) {
 			writeError(w, r, http.StatusForbidden, "NOT_BOOK_OWNER", "you are not the book owner")
@@ -130,7 +130,7 @@ func (h *BookHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	userID := getUserID(r.Context())
 	bookID := chi.URLParam(r, "id")
 
-	if err := h.service.Delete(r.Context(), userID, bookID); err != nil {
+	if err := h.svc.Delete(r.Context(), userID, bookID); err != nil {
 		if errors.Is(err, service.ErrNotBookOwner) {
 			writeError(w, r, http.StatusForbidden, "NOT_BOOK_OWNER", "you are not the book owner")
 			return
