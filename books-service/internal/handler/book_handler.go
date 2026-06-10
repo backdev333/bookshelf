@@ -37,7 +37,7 @@ func (h *BookHandler) List(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *BookHandler) GetByID(w http.ResponseWriter, r *http.Request) {
-	bookId := chi.URLParam(r, "id")
+	bookId := chi.URLParam(r, "book_id")
 
 	b, err := h.svc.GetByID(r.Context(), bookId)
 	if err != nil {
@@ -96,7 +96,7 @@ func (h *BookHandler) Create(w http.ResponseWriter, r *http.Request) {
 
 func (h *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 	userID := getUserID(r.Context())
-	bookID := chi.URLParam(r, "id")
+	bookID := chi.URLParam(r, "book_id")
 
 	var req domain.UpdateBookRequest
 
@@ -128,7 +128,7 @@ func (h *BookHandler) Update(w http.ResponseWriter, r *http.Request) {
 
 func (h *BookHandler) Delete(w http.ResponseWriter, r *http.Request) {
 	userID := getUserID(r.Context())
-	bookID := chi.URLParam(r, "id")
+	bookID := chi.URLParam(r, "book_id")
 
 	if err := h.svc.Delete(r.Context(), userID, bookID); err != nil {
 		if errors.Is(err, service.ErrNotBookOwner) {

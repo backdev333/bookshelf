@@ -1,13 +1,11 @@
 package service
 
 import (
-	domain2 "bookshelf/auth-service/internal/domain"
-	repository2 "bookshelf/auth-service/internal/repository"
+	"bookshelf/books-service/internal/domain"
+	"bookshelf/books-service/internal/repository"
 	"context"
 	"database/sql"
 	"errors"
-	"frontdev333/bookshelf/internal/domain"
-	"frontdev333/bookshelf/internal/repository"
 	"log/slog"
 	"time"
 	"unicode/utf8"
@@ -25,8 +23,10 @@ var (
 
 type ReviewService struct {
 	reviewRepo *repository.ReviewRepository
-	bookRepo   *repository.BookRepository
-	userRepo   *repository2.UserRepository
+}
+
+func NewReviewService(repo *repository.ReviewRepository) *ReviewService {
+	return &ReviewService{repo}
 }
 
 func (s *ReviewService) Create(ctx context.Context, userID, bookID string, req domain.CreateReviewRequest) (*domain.ReviewResponse, error) {

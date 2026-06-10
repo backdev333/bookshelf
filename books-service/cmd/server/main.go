@@ -40,9 +40,14 @@ func main() {
 	db.SetMaxIdleConns(3)
 	db.SetConnMaxLifetime(3 * time.Minute)
 
-	repos := repository.New(db)
-	services := service.NewBookService(repos)
-	bookHandler := handler.NewBookHandler(services)
+	bookRepo := repository.NewBookRepository(db)
+	reviewRepo := repository.NewReviewRepository(db)
+
+	bookService := service.NewBookService(bookRepo)
+	reviewService := service.NewReviewService(reviewRepo)
+
+	bookHandler := handler.NewBookHandler(bookService)
+	reviewHandler := handler.NewReviewHandler(reviewService)
 
 	mux := chi.NewRouter()
 	mux.Use(cors.Handler(cors.Options{
@@ -63,21 +68,19 @@ func main() {
 		r.Get("/health", bookHandler.Health)
 		r.Get("/ready", bookHandler.Ready)
 		r.Get("/books", bookHandler.List)
-		r.Get("/books/{id}", bookHandler.Get)
-		r.Get("/books/{id}/reviews", bookHandler.ListReviews)
-		r.Get("/reviews/{reviewId}", bookHandler.GetReview)
+		r.Get("/books/{book_id}", bookHandler.GetByID)
+		r.Get("/books/{book_id}/reviews", reviewHandler.List)
+		r.Get("/reviews/{reviewId}", reviewHandler.GetReview)
 
 		r.Group(func(r chi.Router) {
 			r.Use(bookHandler.AuthMiddleware)
 
-			r.Get("/users/me", bookHandler.GetCurrentUser)
-			r.Put("/users/me", bookHandler.UpdateCurrentUser)
 			r.Post("/books", bookHandler.Create)
-			r.Put("/books/{id}", bookHandler.Update)
-			r.Delete("/books/{id}", bookHandler.Delete)
-			r.Post("/books/{id}/reviews", bookHandler.CreateReview)
-			r.Put("/reviews/{reviewId}", bookHandler.UpdateReview)
-			r.Delete("/reviews/{reviewId}", bookHandler.DeleteReview)
+			r.Put("/books/{book_id}", bookHandler.Update)
+			r.Delete("/books/{book_id}", bookHandler.Delete)
+			r.Post("/books/{book_id}/reviews", reviewHandler.Create)
+			r.Put("/reviews/{reviewId}", reviewHandler.Update)
+			r.Delete("/reviews/{reviewId}", reviewHandler.Delete)
 		})
 	})
 
