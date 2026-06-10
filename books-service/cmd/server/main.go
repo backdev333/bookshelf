@@ -1,12 +1,12 @@
 package main
 
 import (
+	"bookshelf/books-service/internal/config"
+	"bookshelf/books-service/internal/handler"
+	"bookshelf/books-service/internal/repository"
+	"bookshelf/books-service/internal/service"
 	"context"
 	"errors"
-	"frontdev333/bookshelf/internal/config"
-	"frontdev333/bookshelf/internal/handler"
-	"frontdev333/bookshelf/internal/repository"
-	"frontdev333/bookshelf/internal/service"
 	"log"
 	"log/slog"
 	"net/http"
@@ -41,8 +41,8 @@ func main() {
 	db.SetConnMaxLifetime(3 * time.Minute)
 
 	repos := repository.New(db)
-	services := service.New(repos, cfg.JWTSecret)
-	handlers := handler.New(services, cfg.JWTSecret)
+	services := service.NewBookService(repos)
+	bookHandler := handler.NewBookHandler(services)
 
 	mux := chi.NewRouter()
 	mux.Use(cors.Handler(cors.Options{
@@ -60,26 +60,24 @@ func main() {
 	mux.Use(middleware.Timeout(stdTimeout))
 
 	mux.Route("/api/v1", func(r chi.Router) {
-		r.Get("/health", handlers.Health)
-		r.Get("/ready", handlers.Ready)
-		r.Post("/auth/register", handlers.Register)
-		r.Post("/auth/login", handlers.Login)
-		r.Get("/books", handlers.ListBook)
-		r.Get("/books/{bookId}", handlers.GetBook)
-		r.Get("/books/{bookId}/reviews", handlers.ListBookReviews)
-		r.Get("/reviews/{reviewId}", handlers.GetReview)
+		r.Get("/health", bookHandler.Health)
+		r.Get("/ready", bookHandler.Ready)
+		r.Get("/books", bookHandler.List)
+		r.Get("/books/{id}", bookHandler.Get)
+		r.Get("/books/{id}/reviews", bookHandler.ListReviews)
+		r.Get("/reviews/{reviewId}", bookHandler.GetReview)
 
 		r.Group(func(r chi.Router) {
-			r.Use(handlers.AuthMiddleware)
+			r.Use(bookHandler.AuthMiddleware)
 
-			r.Get("/users/me", handlers.GetCurrentUser)
-			r.Put("/users/me", handlers.UpdateCurrentUser)
-			r.Post("/books", handlers.CreateBook)
-			r.Put("/books/{bookId}", handlers.UpdateBook)
-			r.Delete("/books/{bookId}", handlers.DeleteBook)
-			r.Post("/books/{bookId}/reviews", handlers.CreateReview)
-			r.Put("/reviews/{reviewId}", handlers.UpdateReview)
-			r.Delete("/reviews/{reviewId}", handlers.DeleteReview)
+			r.Get("/users/me", bookHandler.GetCurrentUser)
+			r.Put("/users/me", bookHandler.UpdateCurrentUser)
+			r.Post("/books", bookHandler.Create)
+			r.Put("/books/{id}", bookHandler.Update)
+			r.Delete("/books/{id}", bookHandler.Delete)
+			r.Post("/books/{id}/reviews", bookHandler.CreateReview)
+			r.Put("/reviews/{reviewId}", bookHandler.UpdateReview)
+			r.Delete("/reviews/{reviewId}", bookHandler.DeleteReview)
 		})
 	})
 
