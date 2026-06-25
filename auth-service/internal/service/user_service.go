@@ -1,8 +1,8 @@
 package service
 
 import (
-	"bookshelf/auth-service/internal/domain"
-	"bookshelf/auth-service/internal/repository"
+	"bookshelf/auth-svc/internal/domain"
+	"bookshelf/auth-svc/internal/repository"
 	"context"
 	"errors"
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"net/mail"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -96,7 +97,7 @@ func (s *UserService) Register(ctx context.Context, req domain.RegisterRequest) 
 	}, nil
 }
 
-func (s *UserService) ValidateToken(tokenString string) (string, error) {
+func (s *UserService) ValidateToken(tokenString string) (*jwt.RegisteredClaims, error) {
 	claims := &jwt.RegisteredClaims{}
 	_, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -114,7 +115,7 @@ func (s *UserService) ValidateToken(tokenString string) (string, error) {
 		return "", errors.New("token subject is empty")
 	}
 
-	return claims.Subject, nil
+	return claims, nil
 }
 
 func (s *UserService) validateRegisterReq(ctx context.Context, req domain.RegisterRequest) error {
