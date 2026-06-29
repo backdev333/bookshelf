@@ -84,6 +84,10 @@ func main() {
 		})
 	})
 
+	mux.Route("/internal/v1/auth", func(r chi.Router) {
+		r.Post("/verify", authS)
+	})
+
 	slog.Info("Server starting", "port", port)
 
 	finish := make(chan os.Signal, 1)

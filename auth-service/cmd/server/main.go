@@ -34,6 +34,7 @@ func main() {
 	repo := repository.NewUserRepository(db)
 	userServcie := service.NewUserService(repo, cfg.JWTSecret)
 	h := handler.New(userServcie, cfg.JWTSecret)
+	internalHandler := handler.NewInternalHandler(userServcie)
 
 	mux := chi.NewRouter()
 	mux.Use(cors.Handler(cors.Options{
@@ -63,6 +64,10 @@ func main() {
 			r.Get("/users/me", h.GetMe)
 			r.Put("/users/me", h.UpdateMe)
 		})
+	})
+
+	mux.Route("/internal/v1", func(r chi.Router) {
+		r.Post("/auth/verify", internalHandler.VerifyToken)
 	})
 
 	slog.Info("auth-service started", "port", cfg.Port)
