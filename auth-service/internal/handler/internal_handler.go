@@ -9,7 +9,7 @@ import (
 )
 
 type InternalHandler struct {
-	UService *service.UserService
+	svc *service.UserService
 }
 
 type VerifyResponse struct {
@@ -21,7 +21,7 @@ type VerifyResponse struct {
 
 func NewInternalHandler(svc *service.UserService) *InternalHandler {
 	return &InternalHandler{
-		UService: svc,
+		svc: svc,
 	}
 }
 
@@ -44,7 +44,7 @@ func (h *InternalHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims, err := h.UService.ValidateToken(token.Token)
+	claims, err := h.svc.ValidateToken(token.Token)
 	if err != nil {
 		slog.Error("InternalHandler.VerifyToekn() h.UService.ValidateToken", "error", err)
 		writeJSON(
