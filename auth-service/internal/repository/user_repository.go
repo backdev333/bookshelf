@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"bookshelf/auth-service/internal/domain"
+	"bookshelf/auth-svc/internal/domain"
 	"context"
 	"errors"
 
@@ -49,9 +49,9 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*domain.
 }
 
 func (r *UserRepository) getByField(ctx context.Context, field string, val interface{}) (*domain.User, error) {
-	res, err := repository2.getEntityByField[domain.User](ctx, r.db, "users", field, val)
+	res, err := getEntityByField[domain.User](ctx, r.db, "users", field, val)
 	if err != nil {
-		if errors.Is(err, repository2.ErrNotFound) {
+		if errors.Is(err, ErrUserNotFound) {
 			return nil, ErrUserNotFound
 		}
 		return nil, err
@@ -90,7 +90,7 @@ func (r *UserRepository) GetByIDs(ctx context.Context, ids []string) (map[string
 	res := make(map[string]*domain.User)
 	list := make([]*domain.User, 0)
 
-	q, args, err := sqlx.In(`SELECT * FROM users WHERE id IN (?);`, ids)
+	q, args, err := sqlx.In(`SELECT (id, username, email, created_at, updated_at) FROM users WHERE id IN (?);`, ids)
 	if err != nil {
 		return nil, err
 	}

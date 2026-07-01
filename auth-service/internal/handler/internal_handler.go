@@ -70,3 +70,27 @@ func (h *InternalHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 	)
 	return
 }
+
+func (h *InternalHandler) GetUsersByIDs(w http.ResponseWriter, r *http.Request) {
+	var dto struct {
+		Ids []string
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
+		slog.Error("InternalHandler.GetUserByIDs", "error", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	users, err := h.svc.GetUsersByIDs(r.Context(), dto.Ids)
+	if err != nil {
+		slog.Error("InternalHandler.GetUserByIDs", "error", err)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(users)
+}

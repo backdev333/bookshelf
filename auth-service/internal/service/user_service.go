@@ -108,11 +108,11 @@ func (s *UserService) ValidateToken(tokenString string) (*jwt.RegisteredClaims, 
 	}, jwt.WithValidMethods([]string{"HS256"}))
 
 	if err != nil {
-		return "", fmt.Errorf("validate token: %w", err)
+		return nil, fmt.Errorf("validate token: %w", err)
 	}
 
 	if claims.Subject == "" {
-		return "", errors.New("token subject is empty")
+		return nil, errors.New("token subject is empty")
 	}
 
 	return claims, nil
@@ -154,6 +154,22 @@ func (s *UserService) generateAccessToken(userID string) (string, error) {
 
 func (s *UserService) GetByID(ctx context.Context, userID string) (*domain.User, error) {
 	return s.repo.GetByID(ctx, userID)
+}
+
+func (s *UserService) GetUsersByIDs(ctx context.Context, ids []string) ([]domain.UserPublic, error) {
+	users, err := s.repo.GetByIDs(ctx, ids)
+	if err != nil {
+		slog.Error("UserService.GetUserByIDs s.repo.GetByIDs")
+		return nil, err
+	}
+
+	res := make([]domain.UserPublic, 0, len(users))
+
+	for _, v := range users {
+		res = append(res, v.ToPublic())
+	}
+
+	return res, nil
 }
 
 func (s *UserService) Update(ctx context.Context, userID string, req domain.UpdateUserRequest) (*domain.User, error) {

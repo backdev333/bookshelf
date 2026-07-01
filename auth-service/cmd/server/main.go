@@ -68,6 +68,8 @@ func main() {
 
 	mux.Route("/internal/v1", func(r chi.Router) {
 		r.Post("/auth/verify", internalHandler.VerifyToken)
+
+		r.Post("/users/batch", internalHandler.GetUsersByIDs)
 	})
 
 	slog.Info("auth-service started", "port", cfg.Port)
