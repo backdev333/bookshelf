@@ -86,24 +86,15 @@ func (r *UserRepository) UsernameExists(ctx context.Context, username string) bo
 	return true
 }
 
-func (r *UserRepository) GetByIDs(ctx context.Context, ids []string) (map[string]*domain.User, error) {
-	res := make(map[string]*domain.User)
-	list := make([]*domain.User, 0)
+func (r *UserRepository) GetByIDs(ctx context.Context, ids []string) ([]domain.User, error) {
+	var res []domain.User
 
-	q, args, err := sqlx.In(`SELECT (id, username, email, created_at, updated_at) FROM users WHERE id IN (?);`, ids)
-	if err != nil {
+	q := `SELECT id, username, email, created_at, updated_at FROM users WHERE id = ANY($1);`
+
+	if err := r.db.SelectContext(ctx, &res, q, pq.Array(ids)); err != nil {
 		return nil, err
 	}
 
-	q = r.db.Rebind(q)
-
-	if err = r.db.SelectContext(ctx, &list, q, args...); err != nil {
-		return nil, err
-	}
-
-	for _, v := range list {
-		res[v.ID] = v
-	}
 	return res, nil
 }
 

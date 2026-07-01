@@ -73,7 +73,7 @@ func (h *InternalHandler) VerifyToken(w http.ResponseWriter, r *http.Request) {
 
 func (h *InternalHandler) GetUsersByIDs(w http.ResponseWriter, r *http.Request) {
 	var dto struct {
-		Ids []string
+		IDs []string `json:"ids"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&dto); err != nil {
@@ -83,7 +83,7 @@ func (h *InternalHandler) GetUsersByIDs(w http.ResponseWriter, r *http.Request) 
 	}
 	defer r.Body.Close()
 
-	users, err := h.svc.GetUsersByIDs(r.Context(), dto.Ids)
+	users, err := h.svc.GetUsersByIDs(r.Context(), dto.IDs)
 	if err != nil {
 		slog.Error("InternalHandler.GetUserByIDs", "error", err)
 		w.WriteHeader(http.StatusBadRequest)
